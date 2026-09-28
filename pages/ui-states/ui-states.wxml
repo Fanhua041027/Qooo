@@ -1,0 +1,10 @@
+<view class="states-page">
+  <navigation-bar title="设计状态验收" color="#172b2e" background="#F6F8F8"></navigation-bar>
+  <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="page-content">
+      <view class="states-intro">此页面用于设计、开发和测试联合验收。每个入口都展示一个必须覆盖的产品状态。</view>
+      <view wx:for="{{groups}}" wx:key="title" class="states-group"><view class="section-title">{{item.title}}</view><view class="states-list surface"><view wx:for="{{item.items}}" wx:for-item="stateItem" wx:key="label" class="states-row" data-url="{{stateItem.url}}" bindtap="open"><text>{{stateItem.label}}</text><text>›</text></view></view></view>
+      <view class="states-note">操作成功反馈可在结果页点击“创建农事任务”、任务页点击“标记完成”、农场页点击“添加地块”进行验收。</view>
+    </view>
+  </scroll-view>
+</view>

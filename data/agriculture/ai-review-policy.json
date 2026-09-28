@@ -1,0 +1,59 @@
+{
+  "version": "1.0.0-mvp",
+  "diagnosticLanguage": {
+    "allowed": ["疑似", "较符合", "可能是", "需要补拍确认", "建议专家复核"],
+    "forbidden": ["百分之百确诊", "肯定是", "照此用药一定能治好", "无任何风险"]
+  },
+  "decisionRules": [
+    {
+      "decision": "ask_more",
+      "when": ["作物无法确认", "只有远景照片", "病斑失焦或遮挡", "缺少叶片正反面", "症状与生长部位不一致"],
+      "userMessage": "这组照片还不能可靠判断。请按提示补拍，不要急着用药。"
+    },
+    {
+      "decision": "expert_review",
+      "when": ["高风险检疫性或毁灭性问题", "两种以上问题难以区分", "用户已连续处理但无效", "涉及大面积暴发", "置信度低于 0.65"],
+      "userMessage": "当前情况容易混淆，建议让农技人员结合田间情况复核。"
+    },
+    {
+      "decision": "self_care_guidance",
+      "when": ["问题证据充分", "风险为低或中", "建议仅包含清洁、隔离、灌排、通风、营养和观察等非化学措施"],
+      "userMessage": "可以先按以下步骤处理，并按提示时间复查。"
+    }
+  ],
+  "confidenceRules": {
+    "minimumForNamedResult": 0.65,
+    "minimumForHighConfidenceLabel": 0.85,
+    "neverUseModelScoreAsProbabilityOfTruth": true,
+    "requireLookalikeComparison": true
+  },
+  "pesticideSafety": {
+    "allowSpecificProductRecommendation": false,
+    "allowUnverifiedActiveIngredient": false,
+    "allowFixedDosageWithoutLabelLookup": false,
+    "allowFixedPreharvestIntervalWithoutLabelLookup": false,
+    "requiredChecks": [
+      "作物在有效登记范围内",
+      "防治对象在有效登记范围内",
+      "产品登记状态有效",
+      "使用时期符合标签",
+      "剂量、次数和施用方式符合标签",
+      "安全间隔期符合标签",
+      "未命中禁用或限制使用规则"
+    ],
+    "defaultDisplay": "如需使用农药，请查询有效登记和产品标签，或咨询当地农技人员。不要根据图片自行加量、混配或缩短采收间隔。"
+  },
+  "fertilizerSafety": {
+    "requireSoilOrLeafEvidenceForDeficiency": true,
+    "forbidHighDoseCorrection": true,
+    "defaultDisplay": "缺素症状容易与根系受损、盐害和水分问题混淆。先检查根区和土壤条件，再少量分次调整。"
+  },
+  "mandatoryEscalation": [
+    "柑橘疑似黄龙病",
+    "水稻疑似细菌性条斑病或白叶枯病且快速扩展",
+    "大面积异常死亡",
+    "用户描述人员或牲畜接触农药后不适",
+    "用户询问禁限用农药替代或规避监管方式"
+  ]
+}
+

@@ -1,0 +1,27 @@
+.qd-field {
+  margin-top: 28rpx;
+}
+
+.qd-field__label {
+  display: block;
+  margin-bottom: 12rpx;
+  color: var(--qd-foreground);
+  font-size: 27rpx;
+  font-weight: 600;
+}
+
+.qd-field__control {
+  width: 100%;
+  min-height: 88rpx;
+  padding: 0 26rpx;
+  border: 1rpx solid var(--qd-border);
+  border-radius: 14rpx;
+  background: var(--qd-surface);
+  color: var(--qd-foreground);
+  font-size: 30rpx;
+}
+
+.qd-field__textarea {
+  min-height: 180rpx;
+  padding-top: 22rpx;
+}

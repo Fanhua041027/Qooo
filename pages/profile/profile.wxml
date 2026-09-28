@@ -1,0 +1,26 @@
+<view class="page-shell">
+  <navigation-bar title="我的" back="{{false}}" color="#172b2e" background="#F6F8F8"></navigation-bar>
+  <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="page-content">
+      <view class="profile-head"><view class="avatar">陈</view><view class="profile-head__copy"><view class="profile-head__name">陈师傅</view><view class="profile-head__meta">普通农户 · 山东寿光</view></view><view class="profile-head__edit" bindtap="editProfile">编辑资料</view></view>
+      <view class="profile-stats surface"><view bindtap="openHistory"><text>3</text><text>诊断记录</text></view><view bindtap="openFarm"><text>2</text><text>地块</text></view><view bindtap="openTasks"><text>2</text><text>待办任务</text></view></view>
+
+      <view class="section menu-group surface">
+        <view class="menu-row" bindtap="openHistory"><view class="menu-row__icon menu-row__icon--record"></view><text>我的诊断</text><view>›</view></view>
+        <view class="menu-row" bindtap="openFarm"><view class="menu-row__icon menu-row__icon--farm"></view><text>我的农场</text><view>›</view></view>
+        <view class="menu-row" bindtap="openTasks"><view class="menu-row__icon menu-row__icon--task"></view><text>农事任务</text><view>›</view></view>
+      </view>
+
+      <view class="section menu-group surface">
+        <view class="menu-row" bindtap="showMessages"><view class="menu-row__icon menu-row__icon--notice"></view><text>消息与提醒</text><view><qd-status wx:if="{{unreadCount}}" label="{{unreadCount}} 条未读" type="danger" size="small" /> ›</view></view>
+        <view class="menu-row" bindtap="showHelp"><view class="menu-row__icon menu-row__icon--help"></view><text>帮助与反馈</text><view>›</view></view>
+        <view class="menu-row" bindtap="openStates"><view class="menu-row__icon menu-row__icon--lab"></view><text>设计状态验收</text><view>›</view></view>
+      </view>
+
+      <view class="section profile-note">农间诊提供辅助判断，不替代现场农技诊断。涉及用药时，请以当地登记信息和专业人员意见为准。</view>
+      <view class="logout" bindtap="logout">退出登录</view>
+      <view class="version">农间诊 MVP · 0.1.0</view>
+    </view>
+  </scroll-view>
+  <bottom-nav current="profile" />
+</view>

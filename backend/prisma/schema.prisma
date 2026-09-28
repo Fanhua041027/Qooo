@@ -1,0 +1,237 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  FARMER
+  EXPERT
+  OPERATOR
+  ADMIN
+}
+
+enum DiagnosisStatus {
+  CREATED
+  UPLOADING
+  ANALYZING
+  COMPLETED
+  NEED_MORE_IMAGES
+  NEED_EXPERT_REVIEW
+  FAILED
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum TaskStatus {
+  PENDING
+  COMPLETED
+  OVERDUE
+  CANCELLED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum NotificationType {
+  DIAGNOSIS_COMPLETED
+  DIAGNOSIS_FAILED
+  TASK_DUE
+  TASK_OVERDUE
+  SYSTEM
+}
+
+model User {
+  id            String         @id @default(cuid())
+  phone         String?        @unique
+  wechatOpenId  String?        @unique
+  nickname      String
+  avatarUrl     String?
+  role          UserRole       @default(FARMER)
+  mockAccount   Boolean        @default(false)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  farms         Farm[]
+  diagnoses     Diagnosis[]
+  tasks         Task[]
+  notifications Notification[]
+  files         FileObject[]
+  auditLogs     AuditLog[]
+}
+
+model Farm {
+  id        String      @id @default(cuid())
+  ownerId   String
+  name      String
+  region    String
+  address   String?
+  areaMu    Decimal?    @db.Decimal(10, 2)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  deletedAt DateTime?
+  owner     User        @relation(fields: [ownerId], references: [id])
+  plots     Plot[]
+  diagnoses Diagnosis[]
+  tasks     Task[]
+
+  @@index([ownerId, deletedAt])
+}
+
+model Plot {
+  id           String      @id @default(cuid())
+  farmId       String
+  name         String
+  areaMu       Decimal?    @db.Decimal(10, 2)
+  cropName     String
+  cropVariety  String?
+  plantedAt    DateTime
+  growthStage  String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  deletedAt    DateTime?
+  farm         Farm        @relation(fields: [farmId], references: [id])
+  diagnoses    Diagnosis[]
+  tasks        Task[]
+
+  @@index([farmId, deletedAt])
+}
+
+model Diagnosis {
+  id                 String          @id @default(cuid())
+  userId             String
+  farmId             String?
+  plotId             String?
+  clientRequestId    String
+  status             DiagnosisStatus @default(CREATED)
+  cropName           String?
+  growthStage        String?
+  description        String?
+  result             Json?
+  failureCode        String?
+  failureMessage     String?
+  modelName          String?
+  modelVersion       String?
+  modelTraceId       String?
+  requestId          String
+  traceId            String
+  expertReviewNeeded Boolean         @default(false)
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  completedAt        DateTime?
+  deletedAt          DateTime?
+  user               User            @relation(fields: [userId], references: [id])
+  farm               Farm?           @relation(fields: [farmId], references: [id])
+  plot               Plot?           @relation(fields: [plotId], references: [id])
+  images             DiagnosisImage[]
+  tasks              Task[]
+
+  @@unique([userId, clientRequestId])
+  @@index([userId, status, createdAt])
+  @@index([plotId, createdAt])
+}
+
+model DiagnosisImage {
+  id          String    @id @default(cuid())
+  diagnosisId String
+  objectKey   String
+  width       Int?
+  height      Int?
+  quality     Json?
+  createdAt   DateTime  @default(now())
+  diagnosis   Diagnosis @relation(fields: [diagnosisId], references: [id], onDelete: Cascade)
+
+  @@index([diagnosisId])
+}
+
+model Task {
+  id          String       @id @default(cuid())
+  userId      String
+  clientRequestId String?
+  farmId      String?
+  plotId      String?
+  diagnosisId String?
+  title       String
+  description String?
+  assignee    String?
+  priority    TaskPriority @default(MEDIUM)
+  status      TaskStatus   @default(PENDING)
+  dueAt       DateTime?
+  completedAt DateTime?
+  completedNote String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  user        User         @relation(fields: [userId], references: [id])
+  farm        Farm?        @relation(fields: [farmId], references: [id])
+  plot        Plot?        @relation(fields: [plotId], references: [id])
+  diagnosis   Diagnosis?   @relation(fields: [diagnosisId], references: [id])
+
+  @@index([userId, status, dueAt])
+  @@unique([userId, clientRequestId])
+}
+
+model Notification {
+  id         String           @id @default(cuid())
+  userId     String
+  type       NotificationType
+  title      String
+  content    String
+  targetType String?
+  targetId   String?
+  readAt     DateTime?
+  createdAt  DateTime         @default(now())
+  user       User             @relation(fields: [userId], references: [id])
+
+  @@index([userId, readAt, createdAt])
+}
+
+model FileObject {
+  id          String   @id @default(cuid())
+  userId      String
+  objectKey   String   @unique
+  bucket      String
+  contentType String
+  size        Int?
+  status      String   @default("pending")
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, createdAt])
+}
+
+model KnowledgeArticle {
+  id        String    @id @default(cuid())
+  slug      String    @unique
+  title     String
+  summary   String
+  content   String
+  cropName  String?
+  tags      String[]
+  published Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  action     String
+  resource   String
+  resourceId String?
+  requestId  String
+  traceId    String
+  metadata   Json?
+  createdAt  DateTime @default(now())
+  user       User?    @relation(fields: [userId], references: [id])
+
+  @@index([resource, resourceId, createdAt])
+}

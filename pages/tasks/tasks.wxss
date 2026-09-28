@@ -1,0 +1,36 @@
+.task-overview { display: flex; align-items: center; justify-content: space-between; gap: 24rpx; padding: 28rpx; color: #fff; background: var(--qd-primary); border-radius: 24rpx; }
+.task-overview__eyebrow { color: rgba(255,255,255,.72); font-size: 23rpx; }
+.task-overview__title { margin-top: 7rpx; font-size: 36rpx; line-height: 1.3; font-weight: 710; }
+.task-overview__progress { flex: none; width: 112rpx; text-align: center; padding: 16rpx 8rpx; background: rgba(255,255,255,.13); border-radius: 18rpx; }
+.task-overview__progress text { font-size: 40rpx; line-height: 1; font-weight: 720; }.task-overview__progress view { margin-top: 5rpx; color: rgba(255,255,255,.72); font-size: 21rpx; }
+.task-filter { display: flex; gap: 8rpx; margin: 26rpx 0 22rpx; padding: 6rpx; background: #e7eeee; border-radius: 16rpx; }
+.task-filter view { flex: 1; min-height: 68rpx; color: var(--qd-ink-secondary); border-radius: 12rpx; font-size: 26rpx; line-height: 68rpx; text-align: center; }
+.task-filter .task-filter__item--active { color: var(--qd-primary-strong); background: #fff; box-shadow: 0 2rpx 8rpx rgba(23,75,81,.1); font-weight: 650; }
+.task-stack { display: flex; flex-direction: column; gap: 16rpx; }
+.task-card { display: flex; align-items: flex-start; gap: 20rpx; padding: 22rpx; }
+.task-card__check { flex: none; display: flex; align-items: center; justify-content: center; width: 52rpx; height: 52rpx; border: 3rpx solid var(--qd-primary); border-radius: 50%; }
+.task-card__check--pressed { background: var(--qd-primary-soft); }
+.task-card__tick { width: 20rpx; height: 11rpx; margin-top: -5rpx; border-left: 4rpx solid var(--qd-primary); border-bottom: 4rpx solid var(--qd-primary); transform: rotate(-45deg); }
+.task-card__body { flex: 1; min-width: 0; }
+.task-card__top { display: flex; align-items: flex-start; justify-content: space-between; gap: 14rpx; }
+.task-card__title { font-size: 29rpx; font-weight: 650; }
+.task-card__meta { display: flex; flex-wrap: wrap; gap: 10rpx 20rpx; margin-top: 8rpx; color: var(--qd-ink-secondary); font-size: 24rpx; }
+.task-card__tag { display: inline-flex; min-height: 44rpx; align-items: center; margin-top: 16rpx; padding: 0 14rpx; color: var(--qd-primary-strong); background: var(--qd-primary-soft); border-radius: 999rpx; font-size: 22rpx; }
+.task-card__completion { margin-top: 14rpx; color: var(--qd-ink-secondary); font-size: 24rpx; line-height: 1.55; }
+.task-card--done { opacity: .62; }.task-card--done .task-card__title { text-decoration: line-through; }
+.task-tip { margin-top: 28rpx; padding: 22rpx; color: #74440f; background: var(--qd-warning-soft); border-radius: 18rpx; font-size: 25rpx; line-height: 1.6; }
+.task-tip__title { margin-bottom: 4rpx; font-weight: 700; }
+.add-task { display: flex; align-items: center; justify-content: center; gap: 12rpx; min-height: 92rpx; margin-top: 22rpx; color: var(--qd-primary); background: #fff; border: 2rpx dashed #8caaad; border-radius: 18rpx; font-size: 28rpx; font-weight: 650; }
+.add-task__plus { font-size: 40rpx; line-height: 1; font-weight: 400; }.add-task--pressed { background: var(--qd-primary-soft); }
+.task-editor-mask { position: fixed; z-index: 50; inset: 0; background: rgba(15, 29, 31, .42); }
+.task-editor { position: fixed; z-index: 60; right: 0; bottom: 0; left: 0; padding: 30rpx 32rpx calc(30rpx + env(safe-area-inset-bottom)); background: #fff; border-radius: 24rpx 24rpx 0 0; }
+.task-editor__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 24rpx; margin-bottom: 24rpx; }
+.task-editor__title { font-size: 34rpx; font-weight: 700; }
+.task-editor__close { width: 64rpx; height: 64rpx; color: var(--qd-ink-secondary); background: var(--qd-surface-subtle); border-radius: 50%; font-size: 40rpx; line-height: 60rpx; text-align: center; }
+.task-editor__field { margin-top: 18rpx; }
+.task-editor__field > text { display: block; margin-bottom: 8rpx; color: var(--qd-ink-secondary); font-size: 24rpx; font-weight: 600; }
+.task-editor__field input, .task-editor__field textarea { width: 100%; min-height: 78rpx; padding: 18rpx 20rpx; box-sizing: border-box; color: var(--qd-ink); background: var(--qd-surface-subtle); border-radius: 14rpx; font-size: 28rpx; }
+.task-editor__field textarea { min-height: 108rpx; line-height: 1.5; }
+.task-editor__actions { display: flex; gap: 16rpx; margin-top: 26rpx; }
+.task-editor__actions qd-button:first-child { flex: 0 0 30%; }
+.task-editor__actions qd-button:last-child { flex: 1; }

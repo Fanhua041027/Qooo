@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1600" viewBox="0 0 1200 1600">
+  <rect width="1200" height="1600" fill="#dbe8dd"/>
+  <ellipse cx="600" cy="790" rx="390" ry="620" fill="#4f8f58"/>
+  <rect x="260" y="360" width="680" height="900" fill="#79807a" opacity="0.88"/>
+  <text x="48" y="1540" font-size="38" fill="#173a24">合成质量测试图：异常部位被遮挡</text>
+</svg>

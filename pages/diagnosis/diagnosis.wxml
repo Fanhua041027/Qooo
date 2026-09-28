@@ -1,0 +1,38 @@
+<view class="page-shell diagnosis-page">
+  <navigation-bar title="拍照诊断" back="{{false}}" color="#172b2e" background="#F6F8F8"></navigation-bar>
+  <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="page-content page-content--with-cta">
+      <view class="step-line"><view class="step-line__active"></view><view></view><view></view></view>
+      <view class="page-title">拍清楚异常部位</view><view class="page-subtitle">建议拍摄叶片正面、背面和整株环境，照片越清晰，判断越可靠。</view>
+
+      <view wx:if="{{state === 'offline'}}" class="state-banner state-banner--danger"><view class="state-banner__title">当前无网络，暂时无法上传</view><view>照片会保留在本页，联网后可以继续提交。</view><view class="state-banner__link" bindtap="retryNetwork">检查网络</view></view>
+      <view wx:if="{{state === 'permission'}}" class="state-banner state-banner--warning"><view class="state-banner__title">没有相机或相册权限</view><view>请在微信设置中允许访问，农间诊只读取你主动选择的照片。</view><view class="state-banner__link" bindtap="openSettings">前往设置</view></view>
+
+      <view wx:if="{{!imagePath}}" class="uploader" bindtap="chooseImage" hover-class="uploader--pressed" aria-role="button" aria-label="拍照或从相册选择作物照片">
+        <view class="uploader__camera" aria-hidden="true"><view></view></view>
+        <view class="uploader__title">拍照或从相册选择</view><view class="uploader__hint">支持 JPG、PNG，建议不小于 800 × 800</view>
+        <view class="uploader__mock" catchtap="useMockImage">使用示例照片体验</view>
+      </view>
+      <view wx:else class="photo-preview {{state === 'blur' || state === 'invalid' ? 'photo-preview--problem' : ''}}">
+        <image wx:if="{{imagePath !== 'mock'}}" src="{{imagePath}}" mode="aspectFill"></image>
+        <view wx:else class="mock-photo" aria-label="示例番茄叶片照片"><view class="mock-photo__leaf"></view><view class="mock-photo__spot mock-photo__spot--1"></view><view class="mock-photo__spot mock-photo__spot--2"></view></view>
+        <view wx:if="{{qualityChecking || state === 'uploading'}}" class="photo-preview__loading"><view class="upload-ring"></view><text>{{qualityChecking ? '正在检查照片质量' : '正在安全提交'}}</text></view>
+        <view class="photo-preview__tools"><view bindtap="retake">重新拍摄</view><view bindtap="removeImage">删除</view></view>
+      </view>
+
+      <view wx:if="{{state === 'blur'}}" class="quality-result quality-result--warning" aria-role="alert"><view class="quality-result__icon">!</view><view><view class="quality-result__title">{{quality.title}}</view><view>{{quality.description}}</view><view class="quality-result__actions"><text bindtap="retake">重新拍摄</text><text bindtap="submit">仍然提交</text></view></view></view>
+      <view wx:if="{{state === 'invalid'}}" class="quality-result quality-result--danger" aria-role="alert"><view class="quality-result__icon">×</view><view><view class="quality-result__title">{{quality.title}}</view><view>{{quality.description}}</view><view class="quality-result__actions"><text bindtap="retake">按提示重新拍摄</text></view></view></view>
+      <view wx:if="{{state === 'ready'}}" class="quality-result quality-result--success"><view class="quality-result__icon">✓</view><view><view class="quality-result__title">{{quality.title}}</view><view>{{quality.description}}</view></view></view>
+
+      <view class="context-form surface">
+        <view class="context-row" bindtap="choosePlot"><view><view class="context-row__label">作物</view><view class="caption">帮助缩小判断范围</view></view><view class="context-row__value">{{crop}} <text>›</text></view></view>
+        <view class="divider"></view>
+        <view class="context-row" bindtap="choosePlot"><view><view class="context-row__label">所在位置</view><view class="caption">可跳过，之后补充</view></view><view class="context-row__value">{{plot}} <text>›</text></view></view>
+      </view>
+
+      <view class="shooting-guide section"><view class="section-title">拍摄时注意</view><view class="guide-grid"><view><view class="guide-visual guide-visual--subject"></view><text>主体完整</text></view><view><view class="guide-visual guide-visual--near"></view><text>靠近病斑</text></view><view><view class="guide-visual guide-visual--light"></view><text>光线均匀</text></view></view></view>
+    </view>
+  </scroll-view>
+  <view class="fixed-cta"><qd-button label="提交诊断" loading="{{uploading || qualityChecking}}" disabled="{{!imagePath || qualityChecking || state === 'offline' || state === 'invalid'}}" bind:tap="submit" /></view>
+  <bottom-nav current="diagnosis" />
+</view>

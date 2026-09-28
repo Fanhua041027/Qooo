@@ -1,0 +1,32 @@
+.diagnosis-card {
+  padding: 28rpx 0;
+  border-bottom: 1rpx solid var(--qd-border);
+}
+
+.diagnosis-card:last-child { border-bottom: 0; }
+
+.diagnosis-card__header,
+.diagnosis-card__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.diagnosis-card__crop {
+  color: var(--qd-muted-foreground);
+  font-size: 26rpx;
+}
+
+.diagnosis-card__issue {
+  display: block;
+  margin: 12rpx 0;
+  color: var(--qd-foreground);
+  font-size: 32rpx;
+  font-weight: 650;
+}
+
+.diagnosis-card__meta {
+  color: var(--qd-muted-foreground);
+  font-size: 24rpx;
+}

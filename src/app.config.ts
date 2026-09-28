@@ -1,0 +1,35 @@
+export default defineAppConfig({
+  pages: [
+    'pages/home/index',
+    'pages/diagnosis/index',
+    'pages/farm/index',
+    'pages/tasks/index',
+    'pages/profile/index',
+    'pages/diagnosis-result/index',
+    'pages/diagnosis-history/index',
+    'pages/messages/index',
+    'pages/farm-detail/index'
+  ],
+  window: {
+    backgroundTextStyle: 'light',
+    navigationBarBackgroundColor: '#FFFFFF',
+    navigationBarTitleText: '农间诊',
+    navigationBarTextStyle: 'black',
+    backgroundColor: '#F6F8F8'
+  },
+  tabBar: {
+    color: '#465F62',
+    selectedColor: '#25666D',
+    backgroundColor: '#FFFFFF',
+    borderStyle: 'white',
+    list: [
+      { pagePath: 'pages/home/index', text: '首页' },
+      { pagePath: 'pages/diagnosis/index', text: '诊断' },
+      { pagePath: 'pages/farm/index', text: '农场' },
+      { pagePath: 'pages/tasks/index', text: '任务' },
+      { pagePath: 'pages/profile/index', text: '我的' }
+    ]
+  },
+  lazyCodeLoading: 'requiredComponents',
+  sitemapLocation: 'sitemap.json'
+})

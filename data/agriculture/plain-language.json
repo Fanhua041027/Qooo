@@ -1,0 +1,33 @@
+{
+  "version": "1.0.0-mvp",
+  "readingRules": [
+    "一句话只表达一个动作",
+    "先说现在要做什么，再解释原因",
+    "正文避免连续出现三个以上专业词",
+    "数字和单位之间留空格，避免小字号挤在一起",
+    "按钮使用动词，例如“补拍叶背”“请专家看看”",
+    "风险同时使用文字、图标和颜色表达"
+  ],
+  "replacements": [
+    { "technical": "病原菌侵染", "plain": "病菌进入植株后发病" },
+    { "technical": "系统性症状", "plain": "不是一个叶片的问题，整株都可能受影响" },
+    { "technical": "叶脉间失绿", "plain": "叶脉还是绿的，叶脉中间先变黄" },
+    { "technical": "坏死斑", "plain": "已经干枯或死亡的斑块" },
+    { "technical": "孢子层", "plain": "叶面上像霉一样的粉层" },
+    { "technical": "安全间隔期", "plain": "最后一次用药后，要等够标签规定的天数才能采收" },
+    { "technical": "轮换作用机制", "plain": "不要连续使用同一类药，避免越来越不管用" },
+    { "technical": "生理性障碍", "plain": "不是病菌或虫子造成的，常与水、温度、根或营养有关" },
+    { "technical": "田间发生中心", "plain": "最早、最重的一小片区域" },
+    { "technical": "虫口密度", "plain": "每片叶或每株上大约有多少虫" }
+  ],
+  "standardButtons": {
+    "captureLeafFront": "拍叶片正面",
+    "captureLeafBack": "拍叶片背面",
+    "captureWholePlant": "拍整株",
+    "captureRoot": "拍根和茎基部",
+    "createTask": "加入农事任务",
+    "expertReview": "请农技员看看",
+    "retry": "重新拍一组"
+  }
+}
+

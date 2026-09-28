@@ -1,0 +1,6 @@
+.history-stale { display: flex; align-items: center; justify-content: space-between; gap: 18rpx; margin-top: 28rpx; padding: 18rpx 22rpx; border-radius: 14rpx; background: var(--qd-warning-soft); color: #74440f; font-size: 25rpx; line-height: 1.5; }.history-stale__action { flex: none; min-height: 56rpx; color: var(--qd-primary); font-weight: 700; line-height: 56rpx; }
+.history-filter { display: flex; gap: 8rpx; margin-top: 28rpx; padding: 8rpx; overflow-x: auto; border-radius: 14rpx; background: var(--qd-surface-muted); }
+.history-filter__item { display: flex; min-width: 120rpx; min-height: 80rpx; flex: 1; align-items: center; justify-content: center; gap: 8rpx; padding: 0 14rpx; border-radius: 10rpx; color: var(--qd-muted-foreground); font-size: 25rpx; white-space: nowrap; }
+.history-filter__item--active { background: var(--qd-surface); color: var(--qd-primary-strong); font-weight: 650; box-shadow: 0 2rpx 4rpx rgba(20, 40, 29, 0.08); }
+.history-filter__count { color: inherit; font-size: 22rpx; }
+.history-list { margin-top: 20rpx; padding: 0 28rpx; }

@@ -1,0 +1,57 @@
+{
+  "version": "1.0.0-mvp",
+  "checkedAt": "2026-09-28",
+  "sources": [
+    {
+      "id": "china-pesticide-registration",
+      "name": "中国农药信息网",
+      "url": "https://www.chinapesticide.org.cn/",
+      "use": "查询有效农药登记范围、标签、剂量、使用次数和安全间隔期",
+      "note": "登记状态会变化，涉及用药时必须实时查询，不能把本数据包当作登记凭证。"
+    },
+    {
+      "id": "cabi-plantwise",
+      "name": "CABI Plantwise Knowledge Bank",
+      "url": "https://plantwiseplusknowledgebank.org/",
+      "use": "病虫害症状、传播条件和综合治理参考"
+    },
+    {
+      "id": "irri-rice-knowledge-bank",
+      "name": "IRRI Rice Knowledge Bank",
+      "url": "https://www.knowledgebank.irri.org/",
+      "use": "水稻病虫害、营养障碍和田间管理参考"
+    },
+    {
+      "id": "cimmyt-maize",
+      "name": "CIMMYT Maize Resources",
+      "url": "https://www.cimmyt.org/work/maize-research/",
+      "use": "玉米病虫害与抗逆管理参考"
+    },
+    {
+      "id": "uc-ipm",
+      "name": "University of California Statewide IPM Program",
+      "url": "https://ipm.ucanr.edu/",
+      "use": "番茄、黄瓜、玉米和柑橘综合防治与易混淆问题参考"
+    },
+    {
+      "id": "uf-ifas-citrus",
+      "name": "UF/IFAS Citrus Research and Education Center",
+      "url": "https://crec.ifas.ufl.edu/",
+      "use": "柑橘黄龙病、木虱、溃疡病和营养症状参考"
+    },
+    {
+      "id": "plantvillage",
+      "name": "PlantVillage Dataset",
+      "url": "https://huggingface.co/datasets/mohanty/PlantVillage",
+      "license": "CC BY-SA 3.0",
+      "use": "首版图像正例、健康负例和易混淆样本",
+      "note": "多为单叶、较干净背景，适合训练辅助，不代表真实田间分布。"
+    },
+    {
+      "id": "wikimedia-commons",
+      "name": "Wikimedia Commons",
+      "url": "https://commons.wikimedia.org/",
+      "use": "带独立许可和署名信息的田间案例图片"
+    }
+  ]
+}

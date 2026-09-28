@@ -1,0 +1,22 @@
+<view class="messages-page">
+  <navigation-bar title="消息与提醒" color="#172b2e" background="#F6F8F8"></navigation-bar>
+  <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="page-content">
+      <view class="message-preferences surface">
+        <view><view class="message-preferences__title">普通任务提醒</view><view class="caption">关闭后不再生成临期提醒；逾期和高风险提醒仍会保留。</view></view>
+        <switch checked="{{taskReminderEnabled}}" color="#25666D" bindchange="toggleTaskReminder" />
+      </view>
+
+      <view class="message-head"><view><view class="section-title">站内消息</view><view class="caption">{{unreadCount ? unreadCount + ' 条未读' : '已全部读完'}}</view></view><view wx:if="{{unreadCount}}" class="message-head__action" bindtap="readAll">全部已读</view></view>
+
+      <view wx:if="{{!messages.length}}" class="surface message-empty"><qd-empty-state title="还没有消息" description="诊断完成、诊断失败和任务到期时，提醒会出现在这里。" action="开始一次诊断" bind:action="startDiagnosis" /></view>
+      <view wx:else class="message-list">
+        <view wx:for="{{messages}}" wx:key="id" class="message-item surface {{item.read ? 'message-item--read' : ''}}" data-id="{{item.id}}" bindtap="openMessage" hover-class="surface-pressed">
+          <view class="message-item__mark message-item__mark--{{item.type}}"><view wx:if="{{!item.read}}" class="message-item__dot"></view></view>
+          <view class="message-item__body"><view class="message-item__top"><view class="message-item__title">{{item.title}}</view><qd-status wx:if="{{item.priority === 'HIGH'}}" label="重要" type="danger" size="small" /></view><view class="message-item__copy">{{item.body}}</view><view class="caption">{{item.time}} · 站内提醒</view></view>
+          <view class="message-item__arrow">›</view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+</view>

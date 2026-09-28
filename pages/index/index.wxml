@@ -1,0 +1,56 @@
+<view class="page-shell">
+  <navigation-bar title="农间诊" back="{{false}}" color="#172b2e" background="#F6F8F8"></navigation-bar>
+  <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="page-content">
+      <view wx:if="{{state === 'offline'}}" class="offline-banner" aria-role="alert">
+        <view class="offline-banner__mark">!</view><view class="offline-banner__copy"><text>当前无网络</text><text>已保留页面内容，联网后可继续诊断</text></view><view class="offline-banner__action" bindtap="retryNetwork">重试</view>
+      </view>
+
+      <view class="home-head">
+        <view><view class="home-head__greeting">上午好，{{userName}}</view><view class="home-head__date">9 月 28 日 · 今天适合田间巡查</view></view>
+        <view class="weather-chip"><text class="weather-chip__temp">24°</text><text>多云</text></view>
+      </view>
+
+      <view class="diagnosis-hero" bindtap="startDiagnosis" hover-class="diagnosis-hero--pressed" aria-role="button" aria-label="拍照诊断，拍摄作物异常并获取建议">
+        <view class="diagnosis-hero__copy"><view class="diagnosis-hero__title">拍照诊断</view><view class="diagnosis-hero__subtitle">对准异常部位，先知道怎么处理</view><view class="diagnosis-hero__cta">立即拍摄 <text>→</text></view></view>
+        <view class="camera-mark" aria-hidden="true"><view class="camera-mark__lens"></view><view class="camera-mark__leaf"></view></view>
+      </view>
+
+      <view wx:if="{{state === 'nofarm'}}" class="section surface">
+        <qd-empty-state title="先添加一块地" description="添加作物和地块后，诊断建议会更贴合实际情况。" action="添加农场" bind:action="openFarm" />
+      </view>
+      <block wx:else>
+        <view class="farm-strip" bindtap="openFarm" hover-class="surface-pressed">
+          <view class="farm-strip__mark"></view>
+          <view class="farm-strip__body"><view class="farm-strip__name">{{farm.name}}</view><view class="caption">{{farm.plot}} · {{farm.crop}}</view></view>
+          <view class="farm-strip__arrow">›</view>
+        </view>
+      </block>
+
+      <view class="section">
+        <view class="section-head"><view class="section-title">今天要处理</view><view class="section-link" bindtap="openTasks">全部任务</view></view>
+        <view wx:if="{{tasks.length}}" class="task-list surface">
+          <view wx:for="{{tasks}}" wx:key="id" class="task-row">
+            <view class="task-row__check" aria-hidden="true"></view>
+            <view class="task-row__body"><view class="task-row__title">{{item.title}}</view><view class="caption">{{item.time}} · {{item.status}}</view></view>
+          </view>
+        </view>
+        <view wx:else class="surface"><qd-empty-state title="今天没有待处理任务" description="完成诊断后，可以把下一步行动加入农事任务。" action="开始一次诊断" bind:action="startDiagnosis" /></view>
+      </view>
+
+      <view class="section">
+        <view class="section-head"><view class="section-title">最近诊断</view><view class="section-link" bindtap="openHistory">查看记录</view></view>
+        <view wx:if="{{!recentDiagnosis || state === 'norecords'}}" class="surface"><qd-empty-state title="还没有诊断记录" description="拍一张异常部位照片，结果会保存在这里。" action="开始第一次诊断" bind:action="startDiagnosis" /></view>
+        <view wx:else class="recent-diagnosis surface" bindtap="openHistory" hover-class="surface-pressed">
+          <view class="recent-diagnosis__photo"><view class="leaf-shape"></view></view>
+          <view class="recent-diagnosis__body"><view class="recent-diagnosis__top"><view class="recent-diagnosis__title">{{recentDiagnosis.possibleIssue.name}}</view><qd-status label="{{recentDiagnosis.risk.label}}" type="{{recentDiagnosis.risk.level === 'HIGH' ? 'high' : recentDiagnosis.risk.level === 'LOW' ? 'low' : 'medium'}}" size="small" /></view><view class="caption">{{recentDiagnosis.plot}} · 最近完成</view><view class="recent-diagnosis__action">{{recentDiagnosis.actions[0].title}}</view></view>
+        </view>
+      </view>
+
+      <view class="section knowledge-row" bindtap="openKnowledge" hover-class="surface-pressed">
+        <view><view class="knowledge-row__label">今日农技知识</view><view class="knowledge-row__title">连续阴雨后，怎样区分晚疫病与叶霉病？</view><view class="caption">预计阅读 4 分钟</view></view><view class="knowledge-row__arrow">›</view>
+      </view>
+    </view>
+  </scroll-view>
+  <bottom-nav current="home" />
+</view>

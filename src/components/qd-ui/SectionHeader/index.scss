@@ -1,0 +1,22 @@
+.qd-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+}
+
+.qd-section-header__title {
+  color: var(--qd-foreground);
+  font-size: 34rpx;
+  font-weight: 650;
+}
+
+.qd-section-header__action {
+  display: flex;
+  min-height: 88rpx;
+  align-items: center;
+  padding: 0 0 0 20rpx;
+  color: var(--qd-primary);
+  font-size: 27rpx;
+  font-weight: 600;
+}

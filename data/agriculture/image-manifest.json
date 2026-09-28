@@ -1,0 +1,211 @@
+{
+  "version": "1.0.0-mvp",
+  "purpose": "首版真实案例、健康负例和易混淆负例清单。图片保持远程引用，导入对象存储前必须保存许可、署名和原始页面。",
+  "labelTypes": {
+    "positive": "该问题的正例，可用于展示或评测",
+    "hard_negative": "外观相似但标签不同，用于测试 AI 是否误判",
+    "healthy_negative": "健康叶片，用于测试 AI 是否把正常组织判成病害",
+    "capture_negative": "模糊、过远、遮挡或部位错误的拍摄负例；不得进入疾病训练正例"
+  },
+  "assets": [
+    {
+      "id": "pv-tomato-late-blight-001",
+      "targetIssueId": "tomato-late-blight",
+      "labelType": "positive",
+      "source": "plantvillage",
+      "sourcePath": "raw/color/Tomato___Late_blight/98d99dcc-6922-4b11-9b64-7e75440da1a8___RS_Late.B 5095.JPG",
+      "imageUrl": "https://raw.githubusercontent.com/spMohanty/PlantVillage-Dataset/master/raw/color/Tomato___Late_blight/98d99dcc-6922-4b11-9b64-7e75440da1a8___RS_Late.B%205095.JPG",
+      "license": "CC BY-SA 3.0",
+      "attribution": "PlantVillage Dataset; Mohanty, Hughes and Salathé (2016)",
+      "reviewStatus": "label_from_dataset"
+    },
+    {
+      "id": "pv-tomato-late-blight-002",
+      "targetIssueId": "tomato-late-blight",
+      "labelType": "positive",
+      "source": "plantvillage",
+      "sourcePath": "raw/color/Tomato___Late_blight/c4e17a14-ebac-4e2b-b00f-8b6b5e267b42___RS_Late.B 5097.JPG",
+      "imageUrl": "https://raw.githubusercontent.com/spMohanty/PlantVillage-Dataset/master/raw/color/Tomato___Late_blight/c4e17a14-ebac-4e2b-b00f-8b6b5e267b42___RS_Late.B%205097.JPG",
+      "license": "CC BY-SA 3.0",
+      "attribution": "PlantVillage Dataset; Mohanty, Hughes and Salathé (2016)",
+      "reviewStatus": "label_from_dataset"
+    },
+    {
+      "id": "pv-tomato-early-blight-hard-negative-001",
+      "targetIssueId": "tomato-late-blight",
+      "actualIssueId": "tomato-early-blight",
+      "labelType": "hard_negative",
+      "source": "plantvillage",
+      "sourcePath": "raw/color/Tomato___Early_blight/27ba7432-8547-436c-9b97-adf3cbe15575___RS_Erly.B 7544.JPG",
+      "imageUrl": "https://raw.githubusercontent.com/spMohanty/PlantVillage-Dataset/master/raw/color/Tomato___Early_blight/27ba7432-8547-436c-9b97-adf3cbe15575___RS_Erly.B%207544.JPG",
+      "license": "CC BY-SA 3.0",
+      "attribution": "PlantVillage Dataset; Mohanty, Hughes and Salathé (2016)",
+      "reviewStatus": "label_from_dataset"
+    },
+    {
+      "id": "pv-tomato-healthy-negative-001",
+      "targetIssueId": "tomato-late-blight",
+      "labelType": "healthy_negative",
+      "source": "plantvillage",
+      "sourcePath": "raw/color/Tomato___healthy/fda63621-b0eb-4938-8ec4-8afffc81ddd6___GH_HL Leaf 268.JPG",
+      "imageUrl": "https://raw.githubusercontent.com/spMohanty/PlantVillage-Dataset/master/raw/color/Tomato___healthy/fda63621-b0eb-4938-8ec4-8afffc81ddd6___GH_HL%20Leaf%20268.JPG",
+      "license": "CC BY-SA 3.0",
+      "attribution": "PlantVillage Dataset; Mohanty, Hughes and Salathé (2016)",
+      "reviewStatus": "label_from_dataset"
+    },
+    {
+      "id": "pv-tomato-spider-mite-001",
+      "targetIssueId": "tomato-two-spotted-spider-mite",
+      "labelType": "positive",
+      "source": "plantvillage",
+      "sourcePath": "raw/color/Tomato___Spider_mites Two-spotted_spider_mite/7ee4836e-8c31-4c01-bd17-382df20083dc___Com.G_SpM_FL 9493.JPG",
+      "imageUrl": "https://raw.githubusercontent.com/spMohanty/PlantVillage-Dataset/master/raw/color/Tomato___Spider_mites%20Two-spotted_spider_mite/7ee4836e-8c31-4c01-bd17-382df20083dc___Com.G_SpM_FL%209493.JPG",
+      "license": "CC BY-SA 3.0",
+      "attribution": "PlantVillage Dataset; Mohanty, Hughes and Salathé (2016)",
+      "reviewStatus": "label_from_dataset"
+    },
+    {
+      "id": "commons-tomato-late-blight-fruit-001",
+      "targetIssueId": "tomato-late-blight",
+      "labelType": "positive",
+      "source": "wikimedia-commons",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Tomato_late_blight_fruit_rot_(5816739820).jpg",
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/8/85/Tomato_late_blight_fruit_rot_%285816739820%29.jpg",
+      "license": "CC0",
+      "attribution": "Scot Nelson",
+      "reviewStatus": "manual_source_check_required_before_publish"
+    },
+    {
+      "id": "pv-corn-nlb-001",
+      "targetIssueId": "corn-northern-leaf-blight",
+      "labelType": "positive",
+      "source": "plantvillage",
+      "sourcePath": "raw/color/Corn_(maize)___Northern_Leaf_Blight/2270041a-e14b-4b57-9906-c5a3991a1b09___RS_NLB 3556.JPG",
+      "imageUrl": "https://raw.githubusercontent.com/spMohanty/PlantVillage-Dataset/master/raw/color/Corn_(maize)___Northern_Leaf_Blight/2270041a-e14b-4b57-9906-c5a3991a1b09___RS_NLB%203556.JPG",
+      "license": "CC BY-SA 3.0",
+      "attribution": "PlantVillage Dataset; Mohanty, Hughes and Salathé (2016)",
+      "reviewStatus": "label_from_dataset"
+    },
+    {
+      "id": "pv-corn-nlb-002",
+      "targetIssueId": "corn-northern-leaf-blight",
+      "labelType": "positive",
+      "source": "plantvillage",
+      "sourcePath": "raw/color/Corn_(maize)___Northern_Leaf_Blight/ad75b9e5-d8c8-4719-8bfa-61bad83ff706___RS_NLB 3565.JPG",
+      "imageUrl": "https://raw.githubusercontent.com/spMohanty/PlantVillage-Dataset/master/raw/color/Corn_(maize)___Northern_Leaf_Blight/ad75b9e5-d8c8-4719-8bfa-61bad83ff706___RS_NLB%203565.JPG",
+      "license": "CC BY-SA 3.0",
+      "attribution": "PlantVillage Dataset; Mohanty, Hughes and Salathé (2016)",
+      "reviewStatus": "label_from_dataset"
+    },
+    {
+      "id": "pv-corn-rust-hard-negative-001",
+      "targetIssueId": "corn-northern-leaf-blight",
+      "actualIssueId": "corn-common-rust",
+      "labelType": "hard_negative",
+      "source": "plantvillage",
+      "sourcePath": "raw/color/Corn_(maize)___Common_rust_/RS_Rust 2234.JPG",
+      "imageUrl": "https://raw.githubusercontent.com/spMohanty/PlantVillage-Dataset/master/raw/color/Corn_(maize)___Common_rust_/RS_Rust%202234.JPG",
+      "license": "CC BY-SA 3.0",
+      "attribution": "PlantVillage Dataset; Mohanty, Hughes and Salathé (2016)",
+      "reviewStatus": "label_from_dataset"
+    },
+    {
+      "id": "pv-corn-healthy-negative-001",
+      "targetIssueId": "corn-northern-leaf-blight",
+      "labelType": "healthy_negative",
+      "source": "plantvillage",
+      "sourcePath": "raw/color/Corn_(maize)___healthy/06f252bb-2ceb-4ca3-a25b-3c8016ee7ee8___R.S_HL 5498 copy 2.jpg",
+      "imageUrl": "https://raw.githubusercontent.com/spMohanty/PlantVillage-Dataset/master/raw/color/Corn_(maize)___healthy/06f252bb-2ceb-4ca3-a25b-3c8016ee7ee8___R.S_HL%205498%20copy%202.jpg",
+      "license": "CC BY-SA 3.0",
+      "attribution": "PlantVillage Dataset; Mohanty, Hughes and Salathé (2016)",
+      "reviewStatus": "label_from_dataset"
+    },
+    {
+      "id": "commons-rice-blast-001",
+      "targetIssueId": "rice-blast",
+      "labelType": "positive",
+      "source": "wikimedia-commons",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:J_Sendra_with_Magnaporthe_grisea.jpeg",
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/7/74/J_Sendra_with_Magnaporthe_grisea.jpeg",
+      "license": "CC BY-SA 3.0",
+      "attribution": "Coentor",
+      "reviewStatus": "manual_agronomist_check_required_before_publish"
+    },
+    {
+      "id": "pv-citrus-hlb-001",
+      "targetIssueId": "citrus-huanglongbing",
+      "labelType": "positive",
+      "source": "plantvillage",
+      "sourcePath": "raw/color/Orange___Haunglongbing_(Citrus_greening)/6b279a31-dfc9-4ab5-95da-be3fec559910___CREC_HLB 5539.JPG",
+      "imageUrl": "https://raw.githubusercontent.com/spMohanty/PlantVillage-Dataset/master/raw/color/Orange___Haunglongbing_(Citrus_greening)/6b279a31-dfc9-4ab5-95da-be3fec559910___CREC_HLB%205539.JPG",
+      "license": "CC BY-SA 3.0",
+      "attribution": "PlantVillage Dataset; Mohanty, Hughes and Salathé (2016)",
+      "reviewStatus": "label_from_dataset"
+    },
+    {
+      "id": "pv-citrus-hlb-002",
+      "targetIssueId": "citrus-huanglongbing",
+      "labelType": "positive",
+      "source": "plantvillage",
+      "sourcePath": "raw/color/Orange___Haunglongbing_(Citrus_greening)/9cf1cc5b-a563-4941-a39c-896cedf6c9a7___CREC_HLB 5538.JPG",
+      "imageUrl": "https://raw.githubusercontent.com/spMohanty/PlantVillage-Dataset/master/raw/color/Orange___Haunglongbing_(Citrus_greening)/9cf1cc5b-a563-4941-a39c-896cedf6c9a7___CREC_HLB%205538.JPG",
+      "license": "CC BY-SA 3.0",
+      "attribution": "PlantVillage Dataset; Mohanty, Hughes and Salathé (2016)",
+      "reviewStatus": "label_from_dataset"
+    },
+    {
+      "id": "commons-citrus-hlb-field-001",
+      "targetIssueId": "citrus-huanglongbing",
+      "labelType": "positive",
+      "source": "wikimedia-commons",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Citrus_Greening_(20120120-APHIS-DB-0060).jpg",
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/6/67/Citrus_Greening_%2820120120-APHIS-DB-0060%29.jpg",
+      "license": "Public domain",
+      "attribution": "USDAgov",
+      "reviewStatus": "manual_source_check_required_before_publish"
+    }
+  ],
+  "captureNegativePlan": [
+    {
+      "id": "too-blurry",
+      "labelType": "capture_negative",
+      "instruction": "同一病叶故意失焦拍摄，病斑边缘不可辨认",
+      "expectedAiDecision": "ask_more",
+      "userMessage": "照片有些模糊，请固定手机后重新拍近一点。"
+    },
+    {
+      "id": "too-far",
+      "labelType": "capture_negative",
+      "instruction": "只拍整块田，单株和病斑均不可辨认",
+      "expectedAiDecision": "ask_more",
+      "userMessage": "请再拍一张整株和一张病斑近照。"
+    },
+    {
+      "id": "wrong-part",
+      "labelType": "capture_negative",
+      "instruction": "问题需要叶背证据时只拍叶面",
+      "expectedAiDecision": "ask_more",
+      "userMessage": "还需要同一片叶子的背面照片。"
+    },
+    {
+      "id": "wrong-crop",
+      "labelType": "capture_negative",
+      "instruction": "选择作物与照片中的作物不一致",
+      "expectedAiDecision": "ask_more",
+      "userMessage": "照片里的作物可能与所选作物不一致，请重新选择。"
+    },
+    {
+      "id": "chemical-residue",
+      "labelType": "capture_negative",
+      "instruction": "叶面有喷药后干燥残留或灰尘，容易误作白粉病",
+      "expectedAiDecision": "ask_more",
+      "userMessage": "请轻擦叶面后再拍一张，确认白色物是否仍在。"
+    }
+  ],
+  "knownGaps": [
+    "PlantVillage 主要是单叶和干净背景，不能替代真实田间样本。",
+    "黄瓜、水稻、柑橘虫害及所有生理障碍仍需采集本地田间正例和健康对照。",
+    "所有图片发布到小程序前需要农业专家复核标签，并保存授权或开放许可证明。",
+    "训练、评测、示例展示三类用途应分开记录，避免把测试集泄漏到训练集。"
+  ]
+}

@@ -1,0 +1,102 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: nongjianzhen
+      POSTGRES_PASSWORD: nongjianzhen
+      POSTGRES_DB: nongjianzhen
+    ports: ["5432:5432"]
+    volumes: ["postgres_data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nongjianzhen"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:8-alpine
+    ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: nongjianzhen
+      RABBITMQ_DEFAULT_PASS: nongjianzhen
+    ports: ["5672:5672", "15672:15672"]
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: nongjianzhen
+      MINIO_ROOT_PASSWORD: nongjianzhen-dev-secret
+    ports: ["9000:9000", "9001:9001"]
+    volumes: ["minio_data:/data"]
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  migrate:
+    profiles: ["experience"]
+    build:
+      context: .
+      target: build
+    command: ["sh", "-c", "npm run db:deploy && npm run db:seed"]
+    environment:
+      DATABASE_URL: postgresql://nongjianzhen:nongjianzhen@postgres:5432/nongjianzhen?schema=public
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    profiles: ["experience"]
+    build: .
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://nongjianzhen:nongjianzhen@postgres:5432/nongjianzhen?schema=public
+      REDIS_URL: redis://redis:6379
+      RABBITMQ_URL: amqp://nongjianzhen:nongjianzhen@rabbitmq:5672
+      JWT_SECRET: ${JWT_SECRET:-experience-only-change-this-secret}
+      JWT_EXPIRES_IN: 7d
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: 9000
+      MINIO_USE_SSL: "false"
+      MINIO_ACCESS_KEY: nongjianzhen
+      MINIO_SECRET_KEY: nongjianzhen-dev-secret
+      MINIO_BUCKET: diagnosis-media
+      MOCK_LOGIN_ENABLED: "true"
+      MOCK_AI_DELAY_MS: 800
+      AI_PROVIDER: ${AI_PROVIDER:-mock}
+      SHENNONG_API_KEY: ${SHENNONG_API_KEY:-}
+      SHENNONG_BASE_URL: ${SHENNONG_BASE_URL:-https://api.agent-tech.cc/api/v1}
+      SHENNONG_MODEL: ${SHENNONG_MODEL:-sn}
+      SHENNONG_MODEL_VERSION: ${SHENNONG_MODEL_VERSION:-sn}
+      SHENNONG_TIMEOUT_MS: ${SHENNONG_TIMEOUT_MS:-60000}
+      SHENNONG_HTTPS_PROXY: ${SHENNONG_HTTPS_PROXY:-}
+    ports: ["3000:3000"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  minio_data:

@@ -1,0 +1,62 @@
+.qd-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 88rpx;
+  margin: 0;
+  padding: 0 32rpx;
+  border-radius: 16rpx;
+  font-size: 30rpx;
+  font-weight: 650;
+  line-height: 1;
+  transition: background-color 180ms ease-out, color 180ms ease-out, opacity 180ms ease-out;
+}
+
+.qd-button--lg {
+  min-height: 104rpx;
+  font-size: 32rpx;
+}
+
+.qd-button--block {
+  display: flex;
+  width: 100%;
+}
+
+.qd-button--primary {
+  background: var(--qd-primary);
+  color: #fff;
+}
+
+.qd-button--primary:active {
+  background: var(--qd-primary-strong);
+}
+
+.qd-button--secondary {
+  background: var(--qd-primary-soft);
+  color: var(--qd-primary-strong);
+}
+
+.qd-button--ghost {
+  background: transparent;
+  color: var(--qd-primary);
+}
+
+.qd-button--danger {
+  background: #fbeaec;
+  color: var(--qd-danger);
+}
+
+.qd-button[disabled] {
+  background: var(--qd-surface-muted);
+  color: #53686a;
+  opacity: 1;
+}
+
+.qd-button-group {
+  display: flex;
+  gap: 16rpx;
+}
+
+.qd-button-group .qd-button {
+  flex: 1;
+}

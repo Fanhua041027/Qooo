@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1600" viewBox="0 0 1200 1600">
+  <rect width="1200" height="1600" fill="#dbe8dd"/>
+  <ellipse cx="600" cy="790" rx="390" ry="620" fill="#4f8f58"/>
+  <path d="M600 180v1220" stroke="#d5e7c8" stroke-width="26"/>
+  <ellipse cx="455" cy="650" rx="105" ry="75" fill="#55452f"/>
+  <ellipse cx="730" cy="940" rx="135" ry="95" fill="#695139"/>
+  <text x="48" y="1540" font-size="38" fill="#173a24">合成质量测试图：清晰近景，不代表真实病害</text>
+</svg>

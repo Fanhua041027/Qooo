@@ -1,0 +1,44 @@
+{
+  "pages": [
+    "pages/login/login",
+    "pages/index/index",
+    "pages/diagnosis/diagnosis",
+    "pages/diagnosis-processing/diagnosis-processing",
+    "pages/diagnosis-result/diagnosis-result",
+    "pages/diagnosis-history/diagnosis-history",
+    "pages/farm/farm",
+    "pages/tasks/tasks",
+    "pages/knowledge-detail/knowledge-detail",
+    "pages/profile/profile",
+    "pages/messages/messages",
+    "pages/ui-states/ui-states"
+  ],
+  "window": {
+    "navigationBarTextStyle": "black",
+    "navigationStyle": "custom",
+    "backgroundColor": "#F6F8F8",
+    "backgroundTextStyle": "dark"
+  },
+  "usingComponents": {
+    "navigation-bar": "/components/navigation-bar/navigation-bar",
+    "qd-button": "/components/qd-button/qd-button",
+    "qd-status": "/components/qd-status/qd-status",
+    "qd-empty-state": "/components/qd-empty-state/qd-empty-state",
+    "bottom-nav": "/components/bottom-nav/bottom-nav"
+  },
+  "style": "v2",
+  "renderer": "skyline",
+  "rendererOptions": {
+    "skyline": {
+      "defaultDisplayBlock": true,
+      "defaultContentBox": true,
+      "tagNameStyleIsolation": "legacy",
+      "disableABTest": true,
+      "sdkVersionBegin": "3.0.0",
+      "sdkVersionEnd": "15.255.255"
+    }
+  },
+  "componentFramework": "glass-easel",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

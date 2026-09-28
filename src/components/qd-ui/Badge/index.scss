@@ -1,0 +1,18 @@
+.qd-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44rpx;
+  padding: 0 16rpx;
+  border-radius: 999rpx;
+  background: var(--qd-surface-muted);
+  color: var(--qd-muted-foreground);
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.qd-badge--success { background: #e4f5eb; color: #116437; }
+.qd-badge--warning { background: #fff1d7; color: #804800; }
+.qd-badge--danger { background: #fbe9eb; color: #a3212a; }
+.qd-badge--info { background: #e7f1fb; color: #195986; }
+
+.risk-badge__marker { margin-right: 6rpx; font-weight: 800; }

@@ -1,0 +1,20 @@
+<view class="processing-page">
+  <navigation-bar title="智能诊断" back="{{false}}" color="#172b2e" background="#F6F8F8"></navigation-bar>
+  <view wx:if="{{state === 'analyzing'}}" class="processing-content">
+    <view class="analysis-visual" aria-label="AI 正在分析照片">
+      <view class="analysis-visual__photo"><view class="analysis-visual__leaf"></view><view class="scan-line"></view></view>
+      <view class="analysis-visual__orbit"></view>
+    </view>
+    <view class="processing-title">正在分析作物异常</view>
+    <view class="processing-subtitle">预计还需 {{seconds}} 秒，完成后将自动显示结果。</view>
+    <view class="stage-list surface">
+      <view class="stage-row {{stage >= 1 ? 'stage-row--done' : ''}}"><view class="stage-row__mark">{{stage >= 1 ? '✓' : '1'}}</view><view><view>检查照片质量</view><text>{{stage >= 1 ? '清晰度与主体通过' : '等待检查'}}</text></view></view>
+      <view class="stage-row {{stage >= 2 ? 'stage-row--done' : ''}}"><view class="stage-row__mark">{{stage >= 2 ? '✓' : '2'}}</view><view><view>识别作物与症状</view><text>{{stage >= 2 ? '已发现叶片病斑特征' : '正在比对特征'}}</text></view></view>
+      <view class="stage-row {{stage >= 3 ? 'stage-row--done' : ''}}"><view class="stage-row__mark">{{stage >= 3 ? '✓' : '3'}}</view><view><view>生成安全处理建议</view><text>{{stage >= 3 ? '正在整理下一步行动' : '等待生成'}}</text></view></view>
+    </view>
+    <view class="processing-note">分析结果仅作辅助判断。涉及用药时，请结合当地登记信息和农技人员意见。</view>
+  </view>
+
+  <view wx:elif="{{state === 'failed'}}" class="processing-state"><qd-empty-state type="error" title="这次诊断没有完成" description="服务暂时繁忙，已保留你的照片。可以现在重试，或稍后从诊断记录继续。" action="重新分析" bind:action="retry" /><view class="secondary-link" bindtap="backToPhoto">返回检查照片</view></view>
+  <view wx:elif="{{state === 'offline'}}" class="processing-state"><qd-empty-state type="offline" title="网络连接已断开" description="照片还未提交成功，恢复网络后可以继续，不需要重新拍摄。" action="检查网络后重试" bind:action="retry" /><view class="secondary-link" bindtap="goHome">先回首页</view></view>
+</view>

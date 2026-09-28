@@ -1,0 +1,12 @@
+.qd-button { display: inline-flex; align-items: center; justify-content: center; gap: 12rpx; min-width: 176rpx; margin: 0; box-sizing: border-box; border-radius: 18rpx; font-weight: 650; transition: background-color 160ms ease-out, opacity 160ms ease-out; }
+.qd-button--block { width: 100%; }
+.qd-button--large { min-height: 96rpx; padding: 0 32rpx; font-size: 31rpx; }
+.qd-button--medium { min-height: 80rpx; padding: 0 28rpx; font-size: 28rpx; }
+.qd-button--small { min-height: 64rpx; padding: 0 22rpx; font-size: 25rpx; border-radius: 14rpx; }
+.qd-button--primary { color: #fff; background: #25666d; }
+.qd-button--secondary { color: #174b51; background: #e5f1f2; }
+.qd-button--outline { color: #174b51; background: #fff; border: 1rpx solid #a9bec0; }
+.qd-button--danger { color: #fff; background: #b63f37; }
+.qd-button--ghost { color: #25666d; background: transparent; }
+.qd-button--pressed { opacity: .78; }
+.qd-button[disabled] { color: #718587; background: #e6ecec; opacity: 1; }

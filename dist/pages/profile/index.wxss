@@ -1,0 +1,109 @@
+/*!***********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/.pnpm/css-loader@7.1.5_webpack@5._acd6b2e56f37211d21b75b548b6d6a19/node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[1].oneOf[0].use[1]!./node_modules/.pnpm/postcss-loader@8.2.1_postcs_d0cce084afd83d45ac186e7285bec324/node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[1].oneOf[0].use[2]!./node_modules/.pnpm/resolve-url-loader@5.0.0/node_modules/resolve-url-loader/index.js!./node_modules/.pnpm/sass-loader@14.2.1_sass@1.9_e7e640a27727e7dd64a880bfbf356c2f/node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[1].oneOf[0].use[4]!./src/pages/profile/index.scss ***!
+  \***********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+.profile-identity {
+  display: flex;
+  align-items: center;
+  gap: 22rpx;
+  margin-top: 34rpx;
+  padding: 32rpx;
+  border-radius: 20rpx;
+  background: var(--qd-surface);
+}
+
+.profile-identity__avatar {
+  display: flex;
+  width: 88rpx;
+  height: 88rpx;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--qd-primary);
+  color: #fff;
+  font-size: 34rpx;
+  font-weight: 700;
+}
+
+.profile-identity__body {
+  min-width: 0;
+  flex: 1;
+}
+
+.profile-identity__name {
+  display: block;
+  font-size: 34rpx;
+  font-weight: 680;
+}
+
+.profile-identity__id {
+  display: block;
+  margin-top: 6rpx;
+  overflow: hidden;
+  color: var(--qd-muted-foreground);
+  font-size: 24rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-login {
+  margin-top: 34rpx;
+  padding: 36rpx;
+  border-radius: 22rpx;
+  background: var(--qd-surface);
+}
+
+.profile-login__title {
+  display: block;
+  margin-top: 24rpx;
+  font-size: 38rpx;
+  font-weight: 700;
+}
+
+.profile-login__description {
+  display: block;
+  margin: 14rpx 0 30rpx;
+  color: var(--qd-muted-foreground);
+  font-size: 27rpx;
+}
+
+.profile-menu {
+  margin-top: 34rpx;
+  overflow: hidden;
+  border-radius: 18rpx;
+  background: var(--qd-surface);
+}
+
+.profile-menu > view {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 96rpx;
+  padding: 0 28rpx;
+  border-bottom: 1rpx solid var(--qd-border);
+  font-size: 29rpx;
+}
+
+.profile-menu > view:last-child {
+  border-bottom: 0;
+}
+
+.profile-menu > view text:last-child {
+  color: var(--qd-muted-foreground);
+  font-size: 25rpx;
+}
+
+.profile-environment {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 28rpx;
+  padding: 26rpx 28rpx;
+  border-radius: 16rpx;
+  background: var(--qd-surface-muted);
+  color: var(--qd-muted-foreground);
+  font-size: 27rpx;
+}
+
+.profile-logout {
+  margin-top: 48rpx;
+}

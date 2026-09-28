@@ -1,0 +1,54 @@
+<view class="result-page">
+  <navigation-bar title="诊断结果" back="{{true}}" color="#172b2e" background="#F6F8F8"></navigation-bar>
+  <scroll-view class="result-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view wx:if="{{state === 'failed'}}" class="result-error"><qd-empty-state type="error" title="这次诊断没有完成" description="照片和诊断记录已保留。可以重新分析，或返回拍照页检查图片。" action="重新分析" bind:action="retryDiagnosis" /><view class="history-link" bindtap="diagnoseAgain">返回重新拍摄</view></view>
+    <view wx:else class="result-content">
+      <view wx:if="{{expertOffline}}" class="expert-offline" aria-role="status"><view><view class="expert-offline__title">专家暂时不在线</view><view>这是离线状态演示，暂不会提交真实咨询。</view></view><view bindtap="consultExpert">了解详情</view></view>
+      <view class="result-summary">
+        <view class="result-summary__top">
+          <qd-status label="{{result.risk.label}}" type="{{riskType}}" />
+          <text class="result-summary__confidence">匹配度 {{confidencePercent}}%</text>
+        </view>
+        <view class="result-summary__label">初步判断</view>
+        <view class="result-summary__title">{{result.possibleIssue.name}}</view>
+        <view class="result-summary__body">{{result.risk.reason}} 当前结果适合作为田间排查线索。</view>
+        <view class="result-summary__meta">
+          <view><text>作物</text><text class="result-summary__value">{{result.crop}}</text></view>
+          <view><text>生长阶段</text><text class="result-summary__value">{{result.growthStage}}</text></view>
+          <view><text>地块</text><text class="result-summary__value">{{result.plot}}</text></view>
+        </view>
+      </view>
+
+      <view class="section-block">
+        <view class="section-head"><view class="section-title">判断依据</view><view class="section-link" bindtap="toggleEvidence">{{expanded ? '收起' : '查看详情'}}</view></view>
+        <view class="evidence-list surface">
+          <block wx:for="{{result.possibleIssue.evidence}}" wx:key="*this">
+            <view wx:if="{{index < 2 || expanded}}" class="evidence-row"><view class="evidence-row__mark">{{index + 1}}</view><view><view class="evidence-row__title">{{item}}</view><view class="caption">来自本次照片与种植信息的辅助判断依据</view></view></view>
+          </block>
+        </view>
+      </view>
+
+      <view class="section-block">
+        <view class="section-head"><view class="section-title">建议这样处理</view><qd-status label="3 项行动" type="info" size="small" /></view>
+        <view class="action-list">
+          <view wx:for="{{actions}}" wx:key="id" class="action-item surface">
+            <view class="action-item__order">{{index + 1}}</view>
+            <view class="action-item__body"><view class="action-item__top"><text class="action-item__title">{{item.title}}</text><text class="action-item__priority">{{item.priority}}</text></view><view class="caption">{{item.note}}</view></view>
+          </view>
+        </view>
+      </view>
+
+      <view class="safety-note">
+        <view class="safety-note__mark">i</view>
+        <view><view class="safety-note__title">用药前请再次确认</view><view>本结果不直接指定药品。涉及用药时，请核对当地登记范围、安全间隔期，并优先咨询当地农技人员。</view></view>
+      </view>
+
+      <view class="result-actions">
+        <qd-button wx:if="{{!added}}" label="创建复查任务" bind:tap="addTask" />
+        <qd-button wx:else label="查看农事任务" bind:tap="openTasks" />
+        <qd-button label="请专家复核" type="outline" bind:tap="consultExpert" />
+        <qd-button label="重新诊断" type="ghost" bind:tap="diagnoseAgain" />
+      </view>
+    </view>
+  </scroll-view>
+</view>

@@ -1,0 +1,48 @@
+<view class="page-shell">
+  <navigation-bar title="农事任务" back="{{false}}" color="#172b2e" background="#F6F8F8"></navigation-bar>
+  <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="page-content">
+      <view class="task-overview">
+        <view><view class="task-overview__eyebrow">9 月 28 日 · 星期一</view><view class="task-overview__title">今天有 {{tasks.length - completedCount}} 项待处理</view></view>
+        <view class="task-overview__progress"><text>{{completedCount}}</text><view>已完成</view></view>
+      </view>
+
+      <view class="task-filter" aria-label="任务筛选">
+        <view class="{{filter === 'all' ? 'task-filter__item--active' : ''}}" data-filter="all" bindtap="setFilter">全部</view>
+        <view class="{{filter === 'todo' ? 'task-filter__item--active' : ''}}" data-filter="todo" bindtap="setFilter">待处理</view>
+        <view class="{{filter === 'done' ? 'task-filter__item--active' : ''}}" data-filter="done" bindtap="setFilter">已完成</view>
+      </view>
+
+      <view wx:if="{{visibleTasks.length}}" class="task-stack">
+        <view wx:for="{{visibleTasks}}" wx:key="id" class="task-card surface {{item.done ? 'task-card--done' : ''}}">
+          <view class="task-card__check" data-id="{{item.id}}" bindtap="toggleTask" hover-class="task-card__check--pressed" aria-role="checkbox" aria-checked="{{item.done}}">
+            <view wx:if="{{item.done}}" class="task-card__tick"></view>
+          </view>
+          <view class="task-card__body" data-id="{{item.id}}" bindtap="editTask">
+            <view class="task-card__top"><view class="task-card__title">{{item.title}}</view><qd-status wx:if="{{item.urgent && !item.done}}" label="优先" type="medium" size="small" /></view>
+            <view class="task-card__meta"><text>{{item.time}}</text><text>{{item.plot}}</text></view>
+            <view class="task-card__tag">{{item.tag}}</view>
+            <view wx:if="{{item.done && item.completionNote}}" class="task-card__completion">完成记录：{{item.completionNote}}</view>
+          </view>
+        </view>
+      </view>
+      <view wx:else class="surface"><qd-empty-state title="这一组任务已经清空" description="完成得很不错。可以继续巡查作物，或新建一项农事安排。" action="开始巡查诊断" bind:action="startDiagnosis" /></view>
+
+      <view class="task-tip">
+        <view class="task-tip__title">任务建议</view>
+        <view>先处理诊断复查，再完成日常农事。每次复查都拍摄相同角度，变化会更容易判断。</view>
+      </view>
+      <view class="add-task" bindtap="addTask" hover-class="add-task--pressed" aria-role="button"><text class="add-task__plus">+</text><text>新建农事任务</text></view>
+    </view>
+  </scroll-view>
+  <view wx:if="{{editingTask}}" class="task-editor-mask" bindtap="closeEditor"></view>
+  <view wx:if="{{editingTask}}" class="task-editor" aria-role="dialog" aria-label="编辑农事任务">
+    <view class="task-editor__head"><view><view class="task-editor__title">编辑农事任务</view><view class="caption">修改后会同步到任务列表</view></view><view class="task-editor__close" bindtap="closeEditor">×</view></view>
+    <view class="task-editor__field"><text>任务名称</text><input value="{{editingTask.title}}" data-field="title" bindinput="updateEditField" maxlength="40" /></view>
+    <view class="task-editor__field"><text>执行时间</text><input value="{{editingTask.time}}" data-field="time" bindinput="updateEditField" maxlength="24" /></view>
+    <view class="task-editor__field"><text>负责人</text><input value="{{editingTask.assignee}}" data-field="assignee" bindinput="updateEditField" maxlength="20" /></view>
+    <view class="task-editor__field"><text>备注</text><textarea value="{{editingTask.note}}" data-field="note" bindinput="updateEditField" maxlength="120" auto-height></textarea></view>
+    <view class="task-editor__actions"><qd-button label="取消" type="ghost" size="medium" bind:tap="closeEditor" /><qd-button label="保存任务" size="medium" bind:tap="saveEditor" /></view>
+  </view>
+  <bottom-nav current="tasks" />
+</view>

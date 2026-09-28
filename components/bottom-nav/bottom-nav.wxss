@@ -1,0 +1,15 @@
+.bottom-nav { position: fixed; z-index: 40; right: 0; bottom: 0; left: 0; display: flex; padding: 12rpx 14rpx calc(10rpx + env(safe-area-inset-bottom)); background: rgba(255,255,255,.98); border-top: 1rpx solid #d8e2e3; }
+.bottom-nav__item { flex: 1; min-height: 84rpx; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6rpx; color: #5a7073; font-size: 22rpx; border-radius: 14rpx; }
+.bottom-nav__item--active { color: #174b51; font-weight: 650; }
+.bottom-nav__item--pressed { background: #eef3f3; }
+.bottom-nav__icon { position: relative; width: 34rpx; height: 34rpx; box-sizing: border-box; border: 3rpx solid currentColor; }
+.bottom-nav__icon--home { border-radius: 6rpx 6rpx 3rpx 3rpx; border-top: 0; margin-top: 7rpx; height: 27rpx; }
+.bottom-nav__icon--home::before { content: ''; position: absolute; width: 22rpx; height: 22rpx; top: -10rpx; left: 3rpx; border-top: 3rpx solid currentColor; border-left: 3rpx solid currentColor; transform: rotate(45deg); }
+.bottom-nav__icon--diagnosis { border-radius: 50%; }
+.bottom-nav__icon--diagnosis::after { content: ''; position: absolute; width: 12rpx; height: 12rpx; top: 8rpx; left: 8rpx; border-radius: 50%; background: currentColor; }
+.bottom-nav__icon--farm { border-radius: 50% 5rpx 50% 5rpx; transform: rotate(-12deg); }
+.bottom-nav__icon--farm::after { content: ''; position: absolute; width: 3rpx; height: 27rpx; top: 8rpx; left: 14rpx; background: currentColor; transform: rotate(35deg); }
+.bottom-nav__icon--tasks { border-radius: 5rpx; }
+.bottom-nav__icon--tasks::after { content: ''; position: absolute; width: 14rpx; height: 7rpx; left: 7rpx; top: 8rpx; border-left: 3rpx solid currentColor; border-bottom: 3rpx solid currentColor; transform: rotate(-45deg); }
+.bottom-nav__icon--profile { width: 20rpx; height: 20rpx; margin-bottom: 14rpx; border-radius: 50%; }
+.bottom-nav__icon--profile::after { content: ''; position: absolute; width: 32rpx; height: 16rpx; left: -9rpx; top: 21rpx; border: 3rpx solid currentColor; border-bottom: 0; border-radius: 22rpx 22rpx 0 0; }

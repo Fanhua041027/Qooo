@@ -1,0 +1,17 @@
+<view class="history-page">
+  <navigation-bar title="诊断记录" color="#172b2e" background="#F6F8F8"></navigation-bar>
+  <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="page-content">
+      <view wx:if="{{state === 'offline'}}" class="history-offline"><view><view>当前无网络</view><text>显示的是最近同步的记录</text></view><view bindtap="retry">重试</view></view>
+      <view class="filter-row"><view wx:for="{{filters}}" wx:key="*this" class="filter-chip {{activeFilter === item ? 'filter-chip--active' : ''}}" data-value="{{item}}" bindtap="setFilter">{{item}}</view></view>
+      <view wx:if="{{state === 'empty'}}" class="surface empty-wrap"><qd-empty-state title="还没有诊断记录" description="完成第一次拍照诊断后，结果、建议和复查时间会保存在这里。" action="开始第一次诊断" bind:action="startDiagnosis" /></view>
+      <view wx:elif="{{!visibleRecords.length}}" class="surface empty-wrap"><qd-empty-state title="这个筛选下没有记录" description="可以查看全部记录，或开始一次新的作物诊断。" action="查看全部" bind:action="clearFilter" /></view>
+      <view wx:else class="history-list">
+        <view wx:for="{{visibleRecords}}" wx:key="id" class="history-card surface" data-id="{{item.id}}" data-status="{{item.status}}" bindtap="openRecord" hover-class="surface-pressed">
+          <view class="history-card__photo"><image wx:if="{{item.imagePath && item.imagePath !== 'mock' && !item.imageBroken}}" src="{{item.imagePath}}" mode="aspectFill" data-id="{{item.id}}" binderror="handleImageError"></image><view wx:else class="history-leaf"></view><view wx:if="{{item.imageBroken}}" class="history-card__photo-note">原图失效</view></view>
+          <view class="history-card__body"><view class="history-card__top"><view class="history-card__crop">{{item.crop}}</view><qd-status label="{{item.risk}}" type="{{item.riskType}}" size="small" /></view><view class="history-card__result">{{item.result}}</view><view class="caption">{{item.plot}} · {{item.time}}</view><view class="history-card__footer"><view class="history-card__next">下一步：{{item.action}}</view><view class="history-card__delete" data-id="{{item.id}}" catchtap="deleteRecord">删除</view></view></view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+</view>

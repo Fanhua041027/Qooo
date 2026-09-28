@@ -1,0 +1,8 @@
+.qd-status { display: inline-flex; align-items: center; gap: 10rpx; min-height: 48rpx; padding: 0 18rpx; border-radius: 999rpx; box-sizing: border-box; font-size: 25rpx; font-weight: 650; }
+.qd-status__mark { width: 12rpx; height: 12rpx; border-radius: 50%; background: currentColor; }
+.qd-status--small { min-height: 40rpx; padding: 0 14rpx; font-size: 22rpx; }
+.qd-status--neutral { color: #465f62; background: #eef3f3; }
+.qd-status--success, .qd-status--low { color: #277a4c; background: #e4f4ea; }
+.qd-status--warning, .qd-status--medium { color: #8a4d0d; background: #fff2d9; }
+.qd-status--danger, .qd-status--high { color: #a6332d; background: #fde9e7; }
+.qd-status--info { color: #2868a8; background: #e7f1fb; }

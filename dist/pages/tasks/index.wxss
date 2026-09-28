@@ -1,0 +1,103 @@
+/*!*********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/.pnpm/css-loader@7.1.5_webpack@5._acd6b2e56f37211d21b75b548b6d6a19/node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[1].oneOf[0].use[1]!./node_modules/.pnpm/postcss-loader@8.2.1_postcs_d0cce084afd83d45ac186e7285bec324/node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[1].oneOf[0].use[2]!./node_modules/.pnpm/resolve-url-loader@5.0.0/node_modules/resolve-url-loader/index.js!./node_modules/.pnpm/sass-loader@14.2.1_sass@1.9_e7e640a27727e7dd64a880bfbf356c2f/node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[1].oneOf[0].use[4]!./src/pages/tasks/index.scss ***!
+  \*********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+.tasks-overview {
+  display: flex;
+  gap: 12rpx;
+  margin-top: 28rpx;
+}
+
+.tasks-overview > view {
+  min-width: 0;
+  flex: 1;
+  padding: 20rpx;
+  border: 1rpx solid var(--qd-border);
+  border-radius: 16rpx;
+  background: var(--qd-surface);
+}
+
+.tasks-overview__value {
+  display: block;
+  color: var(--qd-primary-strong);
+  font-size: 36rpx;
+  font-weight: 720;
+  line-height: 1.1;
+}
+
+.tasks-overview__value--warning {
+  color: var(--qd-danger);
+}
+
+.tasks-overview__label {
+  display: block;
+  margin-top: 8rpx;
+  color: var(--qd-muted-foreground);
+  font-size: 24rpx;
+}
+
+.tasks-filter {
+  display: flex;
+  gap: 8rpx;
+  margin-top: 28rpx;
+  padding: 8rpx;
+  border-radius: 14rpx;
+  background: var(--qd-surface-muted);
+}
+
+.tasks-filter view {
+  display: flex;
+  min-height: 88rpx;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  padding: 18rpx 8rpx;
+  border-radius: 10rpx;
+  color: var(--qd-muted-foreground);
+  text-align: center;
+  font-size: 25rpx;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.tasks-filter__active {
+  background: var(--qd-surface);
+  color: var(--qd-primary-strong) !important;
+  box-shadow: 0 2rpx 4rpx rgba(20, 40, 29, 0.08);
+}
+
+.tasks-filter__count {
+  color: inherit;
+  font-size: 22rpx;
+}
+
+.tasks-filter view:nth-child(2) .tasks-filter__count {
+  color: var(--qd-danger);
+}
+
+.tasks-stale {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18rpx;
+  margin-top: 24rpx;
+  padding: 18rpx 22rpx;
+  border-radius: 14rpx;
+  background: var(--qd-warning-soft);
+  color: #74440f;
+  font-size: 25rpx;
+  line-height: 1.5;
+}
+
+.tasks-stale__action {
+  flex: none;
+  min-height: 88rpx;
+  color: var(--qd-primary);
+  font-weight: 700;
+  line-height: 88rpx;
+}
+
+.tasks-list {
+  margin-top: 26rpx;
+  padding: 0 28rpx;
+}

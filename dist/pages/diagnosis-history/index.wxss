@@ -1,0 +1,66 @@
+/*!*********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/.pnpm/css-loader@7.1.5_webpack@5._acd6b2e56f37211d21b75b548b6d6a19/node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[1].oneOf[0].use[1]!./node_modules/.pnpm/postcss-loader@8.2.1_postcs_d0cce084afd83d45ac186e7285bec324/node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[1].oneOf[0].use[2]!./node_modules/.pnpm/resolve-url-loader@5.0.0/node_modules/resolve-url-loader/index.js!./node_modules/.pnpm/sass-loader@14.2.1_sass@1.9_e7e640a27727e7dd64a880bfbf356c2f/node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[1].oneOf[0].use[4]!./src/pages/diagnosis-history/index.scss ***!
+  \*********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+.history-stale {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18rpx;
+  margin-top: 28rpx;
+  padding: 18rpx 22rpx;
+  border-radius: 14rpx;
+  background: var(--qd-warning-soft);
+  color: #74440f;
+  font-size: 25rpx;
+  line-height: 1.5;
+}
+
+.history-stale__action {
+  flex: none;
+  min-height: 56rpx;
+  color: var(--qd-primary);
+  font-weight: 700;
+  line-height: 56rpx;
+}
+
+.history-filter {
+  display: flex;
+  gap: 8rpx;
+  margin-top: 28rpx;
+  padding: 8rpx;
+  overflow-x: auto;
+  border-radius: 14rpx;
+  background: var(--qd-surface-muted);
+}
+
+.history-filter__item {
+  display: flex;
+  min-width: 120rpx;
+  min-height: 80rpx;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  padding: 0 14rpx;
+  border-radius: 10rpx;
+  color: var(--qd-muted-foreground);
+  font-size: 25rpx;
+  white-space: nowrap;
+}
+
+.history-filter__item--active {
+  background: var(--qd-surface);
+  color: var(--qd-primary-strong);
+  font-weight: 650;
+  box-shadow: 0 2rpx 4rpx rgba(20, 40, 29, 0.08);
+}
+
+.history-filter__count {
+  color: inherit;
+  font-size: 22rpx;
+}
+
+.history-list {
+  margin-top: 20rpx;
+  padding: 0 28rpx;
+}
