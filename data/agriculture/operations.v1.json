@@ -1,0 +1,330 @@
+{
+  "version": "1.0.0-mvp-ops",
+  "status": "draft_pending_agronomist_and_product_approval",
+  "updatedAt": "2026-09-29",
+  "scope": {
+    "crops": ["番茄", "黄瓜", "水稻", "玉米", "柑橘"],
+    "scenarios": ["diagnosis_result", "image_upload", "task_creation", "knowledge_detail", "expert_review"],
+    "language": "zh-CN",
+    "disclaimer": "本配置只用于农业辅助判断和行动提示，不替代现场诊断、农艺专家意见或产品标签。"
+  },
+  "riskLevels": [
+    {
+      "code": "RISK_LOW",
+      "level": "low",
+      "label": "低风险",
+      "applicableCrops": ["番茄", "黄瓜", "水稻", "玉米", "柑橘"],
+      "scenarios": ["diagnosis_result", "knowledge_detail"],
+      "description": "目前迹象较轻，短时间内通常不会造成明显扩散或大面积损失，但仍需按时间复查。",
+      "userAction": "先按页面给出的非化学措施处理，并在 3 至 7 天内复查新叶、新梢或相邻植株。",
+      "needsExpertReview": false,
+      "reviewReason": "若症状加重、范围扩大或连续处理无改善，应升级专家复核。"
+    },
+    {
+      "code": "RISK_MEDIUM",
+      "level": "medium",
+      "label": "中风险",
+      "applicableCrops": ["番茄", "黄瓜", "水稻", "玉米", "柑橘"],
+      "scenarios": ["diagnosis_result", "knowledge_detail"],
+      "description": "已经影响部分叶片、果实或生长状态，若环境合适可能继续发展。",
+      "userAction": "今天完成隔离、清洁、通风、灌排或观察记录，并在 24 至 72 小时内复查。",
+      "needsExpertReview": false,
+      "reviewReason": "一旦出现快速扩展、采收期用药需求或症状与多个问题相似，应请农技员复核。"
+    },
+    {
+      "code": "RISK_HIGH",
+      "level": "high",
+      "label": "高风险",
+      "applicableCrops": ["番茄", "黄瓜", "水稻", "玉米", "柑橘"],
+      "scenarios": ["diagnosis_result", "knowledge_detail", "expert_review"],
+      "description": "可能快速扩展、影响产量或影响整片地块，需要尽快控制传播并确认原因。",
+      "userAction": "当天隔离或减少传播操作，24 小时内补拍关键部位，并通过“请农技员看看”提交复核。",
+      "needsExpertReview": true,
+      "reviewReason": "高风险内容必须包含农艺专家复核路径，不能只展示自行处理建议。"
+    },
+    {
+      "code": "RISK_CRITICAL",
+      "level": "critical",
+      "label": "严重风险",
+      "applicableCrops": ["番茄", "黄瓜", "水稻", "玉米", "柑橘"],
+      "scenarios": ["diagnosis_result", "knowledge_detail", "expert_review"],
+      "description": "可能涉及检疫性、毁灭性或大面积快速发生的问题，图片不能替代现场确认。",
+      "userAction": "立即暂停扩散风险较高的操作，保留现场信息，当天联系当地农技部门或专家复核。",
+      "needsExpertReview": true,
+      "reviewReason": "严重风险必须先复核；不得给出未经登记核验的药剂、剂量或混配建议。"
+    }
+  ],
+  "imageQualityPrompts": [
+    {
+      "code": "IMAGE_TOO_DARK",
+      "status": "failed_or_warning",
+      "applicableCrops": ["番茄", "黄瓜", "水稻", "玉米", "柑橘"],
+      "scenarios": ["image_upload", "diagnosis_result"],
+      "title": "画面偏暗",
+      "message": "请移到自然光下重新拍摄，避免手机或手挡住光线。",
+      "nextAction": "重新拍摄",
+      "needsExpertReview": false,
+      "reviewReason": "属于拍摄质量提示，不能据此判断病害。"
+    },
+    {
+      "code": "IMAGE_BLURRY",
+      "status": "failed_or_warning",
+      "applicableCrops": ["番茄", "黄瓜", "水稻", "玉米", "柑橘"],
+      "scenarios": ["image_upload", "diagnosis_result"],
+      "title": "病斑边缘不清楚",
+      "message": "请固定手机，对准异常部位点一下屏幕再拍；不要边走边拍。",
+      "nextAction": "补拍异常部位近照",
+      "needsExpertReview": false,
+      "reviewReason": "无法从失焦图片可靠区分相似问题。"
+    },
+    {
+      "code": "IMAGE_SUBJECT_TOO_SMALL",
+      "status": "failed_or_warning",
+      "applicableCrops": ["番茄", "黄瓜", "水稻", "玉米", "柑橘"],
+      "scenarios": ["image_upload", "diagnosis_result"],
+      "title": "异常部位太小",
+      "message": "请靠近病斑或虫害位置拍一张近照，再补一张整株或整行照片。",
+      "nextAction": "补拍近照和整体照",
+      "needsExpertReview": false,
+      "reviewReason": "远景只能判断分布，不能支持病斑细节判断。"
+    },
+    {
+      "code": "IMAGE_OCCLUDED",
+      "status": "failed_or_warning",
+      "applicableCrops": ["番茄", "黄瓜", "水稻", "玉米", "柑橘"],
+      "scenarios": ["image_upload", "diagnosis_result"],
+      "title": "异常部位被遮挡",
+      "message": "请移开手、叶片或包装袋，拍清病斑边缘、叶背和茎基部。",
+      "nextAction": "移开遮挡后补拍",
+      "needsExpertReview": false,
+      "reviewReason": "遮挡会隐藏易混淆特征，建议补拍而不是直接下结论。"
+    },
+    {
+      "code": "IMAGE_WRONG_PART",
+      "status": "ask_more",
+      "applicableCrops": ["番茄", "黄瓜", "水稻", "玉米", "柑橘"],
+      "scenarios": ["image_upload", "diagnosis_result"],
+      "title": "还缺关键部位",
+      "message": "这类问题需要更多部位作对照，请按提示补拍叶片正面、背面、茎基部或果实。",
+      "nextAction": "按提示补拍",
+      "needsExpertReview": false,
+      "reviewReason": "先补齐证据，再决定是否进入专家复核。"
+    }
+  ],
+  "actionTemplates": [
+    {
+      "code": "ACTION_ISOLATE_TODAY",
+      "type": "DO_NOW",
+      "applicableCrops": ["番茄", "黄瓜", "水稻", "玉米", "柑橘"],
+      "scenarios": ["diagnosis_result", "task_creation"],
+      "title": "今天先标记并隔离最早、最重的一小片区域",
+      "description": "减少人员、工具和水流在健康区与异常区之间来回移动，保留一张整体分布照片。",
+      "timeCondition": "发现后当天完成",
+      "avoid": "不要把病残体直接堆在田边，也不要把带虫苗移到健康区域。",
+      "needsExpertReview": false,
+      "reviewReason": "通用的传播控制动作；若范围超过一块畦或一行，应升级复核。"
+    },
+    {
+      "code": "ACTION_REMOVE_SEVERE_LEAVES",
+      "type": "DO_NOW",
+      "applicableCrops": ["番茄", "黄瓜"],
+      "scenarios": ["diagnosis_result", "task_creation"],
+      "title": "今天清除严重病叶并装袋带离",
+      "description": "只处理明显失去功能的叶片，保留足够健康叶片；操作后清洁手套和工具。",
+      "timeCondition": "发现后当天完成，叶片干燥时操作",
+      "avoid": "不要一次摘除大量叶片，也不要在湿叶间来回作业。",
+      "needsExpertReview": false,
+      "reviewReason": "不涉及药剂；若茎、果实同时受害，需专家复核。"
+    },
+    {
+      "code": "ACTION_VENTILATE_AND_DRY",
+      "type": "DO_NOW",
+      "applicableCrops": ["番茄", "黄瓜"],
+      "scenarios": ["diagnosis_result", "task_creation"],
+      "title": "今天先通风降湿，减少叶面长时间带水",
+      "description": "优先调整通风和浇水时间，避免傍晚大量喷水或让叶片长时间结露。",
+      "timeCondition": "发现高湿、结露或叶背霉层时立即执行",
+      "avoid": "不要用加大灌水或叶面喷水来“冲掉”病斑。",
+      "needsExpertReview": false,
+      "reviewReason": "环境管理动作；若 48 小时内继续快速扩展，需专家复核。"
+    },
+    {
+      "code": "ACTION_CHECK_ROOT_AND_WATER",
+      "type": "DO_NOW",
+      "applicableCrops": ["番茄", "黄瓜", "水稻", "玉米", "柑橘"],
+      "scenarios": ["diagnosis_result", "task_creation"],
+      "title": "今天检查根区水分、积水和近期肥水记录",
+      "description": "记录最近一次浇水、施肥和天气；发现根区过湿或过干时先恢复稳定管理。",
+      "timeCondition": "出现萎蔫、黄化、果实异常或生长停滞时当天检查",
+      "avoid": "不要只凭一张黄叶照片大量补肥或补钙。",
+      "needsExpertReview": false,
+      "reviewReason": "适用于生理性和缺素问题的初步排查；检测结果异常时请专家确认。"
+    },
+    {
+      "code": "ACTION_INSPECT_LEAF_BACK",
+      "type": "DO_NOW",
+      "applicableCrops": ["番茄", "黄瓜", "柑橘"],
+      "scenarios": ["diagnosis_result", "task_creation"],
+      "title": "今天补拍叶背，确认虫体、卵或霉层",
+      "description": "选择同一片叶子的正面和背面，尽量靠近拍清细小虫体、蛛网或霉层。",
+      "timeCondition": "发现针尖状斑点、白色飞虫或叶背霉层时当天完成",
+      "avoid": "不要只看叶面颜色就决定用药。",
+      "needsExpertReview": false,
+      "reviewReason": "补齐关键证据；若看不到虫体但症状继续加重，应请农技员复核。"
+    },
+    {
+      "code": "ACTION_RECHECK_24H",
+      "type": "OBSERVE",
+      "applicableCrops": ["番茄", "黄瓜", "水稻", "玉米", "柑橘"],
+      "scenarios": ["diagnosis_result", "task_creation"],
+      "title": "24 小时后复查并拍同角度对照照",
+      "description": "拍同一株、同一部位和相近光线的照片，记录病斑是否扩大、新叶是否出现相同症状。",
+      "timeCondition": "完成当天处理后 24 小时复查",
+      "avoid": "不要把暂时没有扩大当成已经治愈。",
+      "needsExpertReview": false,
+      "reviewReason": "用于验证变化趋势；扩大或变严重时转专家复核。"
+    },
+    {
+      "code": "ACTION_RECHECK_3D",
+      "type": "OBSERVE",
+      "applicableCrops": ["番茄", "黄瓜", "水稻", "玉米", "柑橘"],
+      "scenarios": ["diagnosis_result", "task_creation"],
+      "title": "3 天后检查新叶和相邻植株",
+      "description": "重点看新长叶片、邻近植株和最早发病位置，记录范围是缩小、稳定还是扩大。",
+      "timeCondition": "低中风险问题完成初步处理后 3 天复查",
+      "avoid": "不要因为老叶没有恢复绿色就重复加大处理。",
+      "needsExpertReview": false,
+      "reviewReason": "老组织未必恢复；新叶和扩展趋势更适合判断是否需要升级。"
+    },
+    {
+      "code": "ACTION_EXPERT_REVIEW_HIGH_RISK",
+      "type": "EXPERT_REVIEW",
+      "applicableCrops": ["番茄", "黄瓜", "水稻", "玉米", "柑橘"],
+      "scenarios": ["diagnosis_result", "expert_review", "task_creation"],
+      "title": "请农技员结合田间情况复核",
+      "description": "补充整株、异常部位正反面、地块范围和近期天气或处理记录，再提交给当地农技员。",
+      "timeCondition": "高风险、快速扩展或两个问题难以区分时当天提交",
+      "avoid": "在复核前不要自行混配、加量或缩短采收等待时间。",
+      "needsExpertReview": true,
+      "reviewReason": "高风险行动模板必须包含明确的复核入口和补充材料。"
+    }
+  ],
+  "safetyBoundaries": [
+    {
+      "code": "SAFETY_LABEL_REQUIRED",
+      "applicableCrops": ["番茄", "黄瓜", "水稻", "玉米", "柑橘"],
+      "scenarios": ["diagnosis_result", "knowledge_detail", "task_creation"],
+      "title": "用药前先核对当前有效标签",
+      "message": "如需使用农药，只能选择在当前作物和防治对象上有有效登记的产品，并严格按产品标签执行。",
+      "mustInclude": ["作物登记范围", "防治对象登记范围", "使用时期", "剂量和次数以标签为准", "安全间隔期以标签为准"],
+      "forbidden": ["不提供固定剂量", "不提供统一安全间隔天数", "不推荐未经核验的商品或有效成分", "不提供混配方案"],
+      "needsExpertReview": true,
+      "reviewReason": "任何涉及药剂的展示都需要农艺专家和合规审核。"
+    },
+    {
+      "code": "SAFETY_NO_BANNED_PESTICIDE",
+      "applicableCrops": ["番茄", "黄瓜", "水稻", "玉米", "柑橘"],
+      "scenarios": ["diagnosis_result", "knowledge_detail", "expert_review"],
+      "title": "禁止推荐禁限用或规避监管内容",
+      "message": "不得推荐禁用、限制使用或登记范围不匹配的农药，也不得提供规避监管的替代说法。",
+      "mustInclude": ["命中禁限用规则时停止给出用药建议", "提示联系当地农技人员", "记录违规代码"],
+      "forbidden": ["替代品绕过监管", "未核验的网络配方", "鼓励超范围使用"],
+      "needsExpertReview": true,
+      "reviewReason": "涉及法规和生产安全，必须由农艺专家与合规负责人共同确认。"
+    },
+    {
+      "code": "SAFETY_FERTILIZER_EVIDENCE",
+      "applicableCrops": ["番茄", "黄瓜", "水稻", "玉米", "柑橘"],
+      "scenarios": ["diagnosis_result", "knowledge_detail", "task_creation"],
+      "title": "缺素建议先查证据再调整",
+      "message": "缺素症状容易与根系受损、盐害、水分和病害混淆，先检查根区和肥水记录，有条件时检测土壤或叶片。",
+      "mustInclude": ["少量分次调整", "不鼓励高剂量纠正", "说明检测或专家复核路径"],
+      "forbidden": ["凭一张照片给出固定用量", "承诺补肥后一定恢复", "把所有黄化都判为缺素"],
+      "needsExpertReview": true,
+      "reviewReason": "营养建议可能造成肥害和成本损失，需要农艺专家确认表述。"
+    },
+    {
+      "code": "SAFETY_NO_CURE_PROMISE",
+      "applicableCrops": ["番茄", "黄瓜", "水稻", "玉米", "柑橘"],
+      "scenarios": ["diagnosis_result", "knowledge_detail", "expert_review"],
+      "title": "不承诺治愈或绝对有效",
+      "message": "统一使用“疑似、可能、较符合、建议复核”等表述，说明结果只是辅助判断。",
+      "mustInclude": ["辅助判断免责声明", "风险和可信程度分开显示", "处理后按时间复查"],
+      "forbidden": ["保证治愈", "百分之百确诊", "照做一定有效", "无任何风险"],
+      "needsExpertReview": true,
+      "reviewReason": "属于全局风险文案，发布前需产品负责人和农艺专家共同批准。"
+    },
+    {
+      "code": "SAFETY_HUMAN_OR_ANIMAL_EXPOSURE",
+      "applicableCrops": ["番茄", "黄瓜", "水稻", "玉米", "柑橘"],
+      "scenarios": ["diagnosis_result", "expert_review"],
+      "title": "人员或牲畜接触农药后不适时停止农业建议",
+      "message": "如有人或牲畜接触农药后出现不适，请立即联系当地医疗或应急渠道，并携带产品包装或标签信息。",
+      "mustInclude": ["停止继续用药建议", "医疗或应急求助路径", "保留产品标签和接触信息"],
+      "forbidden": ["在农业诊断流程内继续给出用药方案", "用大量饮水或偏方替代医疗建议"],
+      "needsExpertReview": true,
+      "reviewReason": "属于人员和动物安全事件，必须升级人工处理。"
+    }
+  ],
+  "expertReviewPrompts": [
+    {
+      "code": "REVIEW_HIGH_RISK_FAST_SPREAD",
+      "applicableCrops": ["番茄", "黄瓜", "水稻", "玉米", "柑橘"],
+      "scenarios": ["diagnosis_result", "expert_review"],
+      "trigger": "24 至 48 小时内病斑、虫量或萎蔫范围明显扩大",
+      "message": "症状扩展较快，建议当天请农技员查看；请补充整株、病斑近照和地块范围。",
+      "reviewPath": "补拍关键部位 → 提交专家复核 → 等待人工意见",
+      "needsExpertReview": true
+    },
+    {
+      "code": "REVIEW_LOOKALIKE_UNCLEAR",
+      "applicableCrops": ["番茄", "黄瓜", "水稻", "玉米", "柑橘"],
+      "scenarios": ["diagnosis_result", "expert_review"],
+      "trigger": "两个或以上问题外观相似，或关键证据缺失",
+      "message": "目前有多个可能原因，图片还不足以区分；请补拍提示部位，必要时请农技员复核。",
+      "reviewPath": "补拍正反面或茎果 → 提交专家复核",
+      "needsExpertReview": true
+    },
+    {
+      "code": "REVIEW_LOW_CONFIDENCE",
+      "applicableCrops": ["番茄", "黄瓜", "水稻", "玉米", "柑橘"],
+      "scenarios": ["diagnosis_result", "expert_review"],
+      "trigger": "可信程度不足以支持命名结果，或图片质量只有警告",
+      "message": "这次只能给出方向性提示，不能当作确定结论；请重新拍一组清晰照片或请农技员查看。",
+      "reviewPath": "重新拍摄 → 再次分析；仍不确定时提交专家复核",
+      "needsExpertReview": true
+    },
+    {
+      "code": "REVIEW_QUARANTINE_SUSPECT",
+      "applicableCrops": ["柑橘", "水稻"],
+      "scenarios": ["diagnosis_result", "expert_review"],
+      "trigger": "疑似柑橘黄龙病，或水稻细菌性条斑病、白叶枯病且快速扩展",
+      "message": "该类问题可能影响周边地块，先减少移动和传播操作，当天联系当地植保或农技部门确认。",
+      "reviewPath": "保留现场与分布照片 → 联系当地植保部门 → 按官方意见处理",
+      "needsExpertReview": true
+    },
+    {
+      "code": "REVIEW_NO_IMPROVEMENT",
+      "applicableCrops": ["番茄", "黄瓜", "水稻", "玉米", "柑橘"],
+      "scenarios": ["diagnosis_result", "task_creation", "expert_review"],
+      "trigger": "按建议观察 3 至 7 天后没有改善，或出现更严重症状",
+      "message": "当前处理没有看到改善，请上传同角度复查照片和处理记录，交给农技员重新判断。",
+      "reviewPath": "提交复查照片与处理记录 → 专家复核 → 必要时重新诊断",
+      "needsExpertReview": true
+    },
+    {
+      "code": "REVIEW_PESTICIDE_SAFETY_EVENT",
+      "applicableCrops": ["番茄", "黄瓜", "水稻", "玉米", "柑橘"],
+      "scenarios": ["expert_review"],
+      "trigger": "用户询问禁限用药、规避监管，或报告人员和牲畜接触农药后不适",
+      "message": "该问题不能通过图片诊断处理，请停止继续用药并联系当地农技、医疗或应急渠道。",
+      "reviewPath": "停止农业用药建议 → 转人工安全事件处理 → 留存标签和接触信息",
+      "needsExpertReview": true
+    }
+  ],
+  "approval": {
+    "agronomist": { "status": "pending", "name": "待指定", "confirmedAt": null },
+    "productOwner": { "status": "pending", "name": "待指定", "approvedAt": null },
+    "releaseRule": "农艺专家确认且产品负责人批准后，才允许复制到测试环境。"
+  }
+}

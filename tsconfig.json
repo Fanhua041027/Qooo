@@ -15,7 +15,8 @@
     "paths": {
       "@/*": ["src/*"],
       "@nongjianzhen/types": ["packages/types/src/index.ts"],
-      "@nongjianzhen/api-client": ["packages/api-client/src/index.ts"]
+      "@nongjianzhen/api-client": ["packages/api-client/src/index.ts"],
+      "@nongjianzhen/diagnosis-engine": ["packages/diagnosis-engine/src/index.ts"]
     },
     "types": ["node"]
   },

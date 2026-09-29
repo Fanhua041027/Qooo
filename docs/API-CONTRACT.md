@@ -180,7 +180,9 @@ GET  /api/v1/message-preferences
 PATCH /api/v1/message-preferences
 ```
 
-当前原生小程序使用 `services/message-service.js` 作为本地适配器，字段与以上接口一致。诊断完成/失败和任务临期/逾期会通过 `dedupeKey` 防止重复提醒；普通任务提醒可以关闭，高风险和逾期消息不能被关闭。
+`POST /api/v1/messages/read-all` 返回 `{ "updated": 3 }`，只处理当前用户的未读消息。通知偏好字段为 `diagnosisCompleted`、`diagnosisFailed`、`taskDue`、`taskOverdue`、`system`；其中系统通知和逾期任务提醒始终保持开启。
+
+当前小程序使用 `src/services/message.api.ts` 作为适配器，字段与以上接口一致。诊断完成/失败和任务临期/逾期会通过 `dedupeKey` 防止重复提醒；普通任务提醒可以关闭，系统通知和逾期消息不能被关闭。
 
 ### 农场与地块
 
@@ -198,10 +200,52 @@ PATCH /api/v1/plots/{plotId}
 
 ```text
 GET   /api/v1/ops/configs
-PATCH /api/v1/ops/configs/{configKey}
-GET   /api/v1/ops/configs/{configKey}/versions
-POST  /api/v1/ops/configs/{configKey}/rollback
+GET   /api/v1/ops/configs/{key}
+POST  /api/v1/ops/configs/preview
+POST  /api/v1/ops/configs
+PUT   /api/v1/ops/configs/{key}
+POST  /api/v1/ops/configs/{key}/rollback
+GET   /api/v1/ops/configs/{key}/versions
 ```
+
+运营配置接口需要 `Bearer JWT`。普通配置允许 `OPERATOR`、`EXPERT`、`ADMIN` 角色访问和管理；`SAFETY` 安全配置只允许 `EXPERT`、`ADMIN` 创建、修改和回滚。农户或未知角色返回 `FORBIDDEN`。成功响应统一包装为：
+
+```json
+{
+  "code": "OK",
+  "message": "success",
+  "data": {},
+  "requestId": "req_demo_001",
+  "traceId": "trace_demo_001"
+}
+```
+
+创建配置请求体：
+
+```json
+{
+  "key": "home.quick-start",
+  "name": "首页拍照引导",
+  "description": "首页提示语",
+  "category": "HOME",
+  "content": "请拍摄清晰的叶片正面和背面"
+}
+```
+
+预览请求体使用 `key`、`category`（可选）和 `content`，只执行校验，不写入数据库。更新请求体为：
+
+```json
+{
+  "content": "当前情况可能影响叶片，请在 24 小时内复查",
+  "expectedVersion": "v3"
+}
+```
+
+`expectedVersion` 不匹配时返回 `OPS_CONFIG_VERSION_CONFLICT`，避免覆盖其他运营人员的新版本。内容不能为空、不能超过 2000 个字符，也不能包含“确诊”“保证有效”“一定有效”“100%”等确定性或危险用药表述。
+
+回滚请求体为 `{ "version": "v2" }`。回滚不会删除历史记录，而是生成一个新的递增版本；保存或回滚事务失败时旧版本保持不变。版本列表包含当前版本、历史内容、修改人、修改时间、动作以及 `requestId`、`traceId`。
+
+当配置数据库读取失败时，列表和已知配置详情返回内置安全默认配置，并附带 `fallback: true`；这样诊断结果页可以继续渲染。写入失败返回 `STORAGE_UNAVAILABLE`，不会改变当前版本。
 
 ## 5. Mock 数据要求
 

@@ -13,6 +13,9 @@ import { taskApi } from '@/services/task.api'
 import { messageApi } from '@/services/message.api'
 import { useAuthStore } from '@/store/auth.store'
 import { track } from '@/utils/analytics'
+import { useOpsConfigStore } from '@/store/ops-config.store'
+import { parseOpsConfigContent } from '@/pages/ops-config/policy'
+import { DEFAULT_OPS_CONFIGS } from '@/mocks/ops-config'
 import { LoadingState } from '@/components/qd-ui/PageState'
 import './index.scss'
 
@@ -25,6 +28,14 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true)
   const [offline, setOffline] = useState(false)
   const [lastSyncedAt, setLastSyncedAt] = useState<string>('')
+  const [homeCopy, setHomeCopy] = useState(() => {
+    const seeded = DEFAULT_OPS_CONFIGS.find((item) => item.key === 'home.quick-start')
+    const parsed = parseOpsConfigContent(seeded?.content || '', { title: '', description: '' })
+    let badge = '约 30 秒得到初步判断'
+    try { const payload = JSON.parse(seeded?.content || '') as { badge?: unknown }; if (typeof payload.badge === 'string') badge = payload.badge } catch { /* 兼容两行文案 */ }
+    return { ...parsed, badge }
+  })
+  const { configs: opsConfigs, load: loadOpsConfigs } = useOpsConfigStore()
   const loadRunRef = useRef(0)
   const loadedIdentityRef = useRef<string>()
 
@@ -65,6 +76,22 @@ export default function HomePage() {
   usePullDownRefresh(load)
 
   useEffect(() => {
+    let active = true
+    void loadOpsConfigs().then(() => {
+      const quickStart = useOpsConfigStore.getState().configs.find((item) => item.key === 'home.quick-start') || opsConfigs.find((item) => item.key === 'home.quick-start')
+      if (!active || !quickStart) return
+      const parsed = parseOpsConfigContent(quickStart.content, { title: homeCopy.title, description: homeCopy.description })
+      let badge = homeCopy.badge
+      try {
+        const payload = JSON.parse(quickStart.content) as { badge?: unknown }
+        if (typeof payload.badge === 'string' && payload.badge.trim()) badge = payload.badge
+      } catch { /* 兼容旧版两行文案 */ }
+      setHomeCopy({ ...parsed, badge })
+    }).catch(() => undefined)
+    return () => { active = false }
+  }, [loadOpsConfigs, opsConfigs])
+
+  useEffect(() => {
     // 网络状态变化时立即更新提示，并在恢复连接后重新同步一次首页数据。
     const handleNetworkChange = (event: { isConnected: boolean }) => {
       setOffline(!event.isConnected)
@@ -88,7 +115,7 @@ export default function HomePage() {
   }
 
   return (
-    <View className='page home-page'>
+    <View className='page page--with-footer home-page'>
       {offline ? <View className='home-offline' role='status'><Text>当前网络不可用，以下内容可能不是最新状态</Text><Text className='home-offline__action' onClick={load}>重新连接</Text></View> : null}
 
       <View className='home-heading'>
@@ -119,9 +146,9 @@ export default function HomePage() {
       {!loading ? <View className='home-diagnosis'>
         <View className='home-diagnosis__content'>
           <Text className='home-diagnosis__eyebrow'>田间快速判断</Text>
-          <Badge tone='success'>约 30 秒得到初步判断</Badge>
-          <Text className='home-diagnosis__title'>拍下作物异常部位</Text>
-          <Text className='home-diagnosis__description'>尽量靠近病斑，保持光线均匀，并拍清叶片边缘。</Text>
+          <Badge tone='success'>{homeCopy.badge}</Badge>
+          <Text className='home-diagnosis__title'>{homeCopy.title}</Text>
+          <Text className='home-diagnosis__description'>{homeCopy.description}</Text>
         </View>
         <Button block size='lg' onClick={startDiagnosis}>拍照诊断</Button>
       </View> : null}
@@ -136,6 +163,16 @@ export default function HomePage() {
           <Text className='home-context__label'>待处理任务</Text>
           <Text className='home-context__value'>{tasks.length} 项</Text>
           <Text className='home-context__meta'>{tasks[0]?.title || '当前没有待处理任务'}</Text>
+        </View>
+      </View> : null}
+
+      {!loading ? <View className='home-services section'>
+        <View className='home-overview__heading'><View><Text className='section-title'>田间服务</Text><Text className='home-overview__sync'>天气、物资和农技支持集中在这里</Text></View><Text className='home-overview__link' onClick={() => Taro.navigateTo({ url: '/pages/weather/index' })}>看天气</Text></View>
+        <View className='home-services__grid'>
+          <View className='home-service' onClick={() => Taro.navigateTo({ url: '/pages/weather/index' })}><Text className='home-service__title'>田间天气</Text><Text>看降雨、湿度和作业提醒</Text></View>
+          <View className='home-service' onClick={() => Taro.navigateTo({ url: '/pages/shop/index' })}><Text className='home-service__title'>农资小铺</Text><Text>基础用品，先看安全说明</Text></View>
+          <View className='home-service' onClick={() => Taro.navigateTo({ url: '/pages/community/index' })}><Text className='home-service__title'>农友交流</Text><Text>分享过程，互相补充证据</Text></View>
+          <View className='home-service' onClick={() => Taro.navigateTo({ url: '/pages/expert-chat/index' })}><Text className='home-service__title'>专家复核</Text><Text>高风险情况联系农技员</Text></View>
         </View>
       </View> : null}
 

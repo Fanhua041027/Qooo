@@ -89,11 +89,11 @@ export default function FarmPage() {
   }
 
   if (!identity) {
-    return <View className='page'><EmptyState title='登录后管理农场' description='农场和地块会作为诊断上下文保存。' actionLabel='去登录' onAction={() => Taro.switchTab({ url: '/pages/profile/index' })} /></View>
+    return <View className='page page--with-footer'><EmptyState title='登录后管理农场' description='农场和地块会作为诊断上下文保存。' actionLabel='去登录' onAction={() => Taro.switchTab({ url: '/pages/profile/index' })} /></View>
   }
 
   return (
-    <View className='page farm-page'>
+    <View className='page page--with-footer farm-page'>
       <View className='farm-heading'>
         <View><Text className='page-title'>我的农场</Text><Text className='page-description'>管理地块、作物与生长阶段。</Text></View>
         <Button variant='secondary' onClick={() => showForm ? setShowForm(false) : startCreate()}>{showForm ? '取消' : '新建'}</Button>

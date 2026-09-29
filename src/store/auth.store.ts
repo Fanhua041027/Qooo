@@ -5,6 +5,7 @@ import { toAuthIdentity } from '@nongjianzhen/api-client'
 import { API_MODE, AUTH_TOKEN_STORAGE_KEY } from '@/config/env'
 import { mockLogin } from '@/services/auth.api'
 import { apiClient } from '@/services/client'
+import { clearAuthSession, onAuthSessionChange } from '@/services/auth-session'
 
 const STORAGE_KEY = 'nongjianzhen_auth_identity'
 
@@ -13,7 +14,7 @@ interface AuthState {
   initialized: boolean
   loading: boolean
   initialize: () => void
-  loginWithMock: () => Promise<void>
+  loginWithMock: (userId?: string) => Promise<void>
   loginWithWechat: () => Promise<void>
   logout: () => void
 }
@@ -29,12 +30,12 @@ export const useAuthStore = create<AuthState>((set) => ({
     if (!identity && storedIdentity) Taro.removeStorageSync(STORAGE_KEY)
     set({ identity, initialized: true })
   },
-  loginWithMock: async () => {
+  loginWithMock: async (userId) => {
     set({ loading: true })
     try {
-      const result = API_MODE === 'mock' ? null : await apiClient.mockLogin()
-      const identity = result ? toAuthIdentity(result.data) : await mockLogin()
-      if (result?.data.accessToken) Taro.setStorageSync(AUTH_TOKEN_STORAGE_KEY, result.data.accessToken)
+      const result = await apiClient.mockLogin(userId)
+      const identity = toAuthIdentity(result.data)
+      if (result.data.accessToken) Taro.setStorageSync(AUTH_TOKEN_STORAGE_KEY, result.data.accessToken)
       Taro.setStorageSync(STORAGE_KEY, identity)
       set({ identity })
     } finally {
@@ -57,8 +58,10 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
   logout: () => {
     void apiClient.logout().catch(() => undefined)
-    Taro.removeStorageSync(STORAGE_KEY)
-    Taro.removeStorageSync(AUTH_TOKEN_STORAGE_KEY)
+    clearAuthSession('logout')
     set({ identity: null })
   }
 }))
+
+// HTTP 层遇到 401 时统一清理登录态，页面无需逐个处理过期 token。
+onAuthSessionChange(() => useAuthStore.setState({ identity: null }))

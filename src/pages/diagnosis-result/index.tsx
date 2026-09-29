@@ -1,12 +1,12 @@
 import Taro, { useDidShow, useLoad } from '@tarojs/taro'
 import { Text, View } from '@tarojs/components'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Badge } from '@/components/qd-ui/Badge'
 import { Button, ButtonGroup } from '@/components/qd-ui/Button'
 import { ErrorState, LoadingState } from '@/components/qd-ui/PageState'
 import { RiskBadge } from '@/components/business/RiskBadge'
 import { DiagnosisLoop } from '@/components/business/DiagnosisLoop'
-import type { DiagnosisLoopState, DiagnosisVerificationOutcome } from '@nongjianzhen/types'
+import type { DiagnosisAction, DiagnosisLoopState, DiagnosisVerificationOutcome } from '@nongjianzhen/types'
 import { useDiagnosisPolling } from '@/features/diagnosis/useDiagnosisPolling'
 import { taskApi } from '@/services/task.api'
 import { diagnosisApi } from '@/services/diagnosis.api'
@@ -14,6 +14,8 @@ import { requestTaskSubscription } from '@/services/subscription'
 import { formatConfidence, formatDateTime } from '@/utils/format'
 import { track } from '@/utils/analytics'
 import { createClientRequestId } from '@/utils/id'
+import { useOpsConfigStore } from '@/store/ops-config.store'
+import { parseOpsConfigContent } from '@/pages/ops-config/policy'
 import './index.scss'
 
 const actionLabels = {
@@ -33,12 +35,17 @@ export default function DiagnosisResultPage() {
   const verifyingRef = useRef(false)
   const [loopOverride, setLoopOverride] = useState<DiagnosisLoopState>()
   const [verifying, setVerifying] = useState(false)
+  const { configs: opsConfigs, load: loadOpsConfigs } = useOpsConfigStore()
   const { diagnosis, loading, error, pollingTimedOut, reload } = useDiagnosisPolling(diagnosisId)
 
   useLoad((params) => setDiagnosisId(params.id))
   useDidShow(() => {
     if (diagnosisId) reload()
+    void loadOpsConfigs(true)
   })
+  useEffect(() => {
+    void loadOpsConfigs(true)
+  }, [diagnosisId, loadOpsConfigs])
 
   if (loading && !diagnosis) return <View className='page'><LoadingState label='正在读取诊断状态' /></View>
   if (error && !diagnosis) return <View className='page'><ErrorState title='诊断结果加载失败' message={error} onRetry={reload} /></View>
@@ -111,6 +118,30 @@ export default function DiagnosisResultPage() {
   }
 
   const issue = diagnosis.possibleIssues[0]
+  const configuredContent = (key: string) => diagnosis.model.configSnapshot?.[key] || opsConfigs.find((item) => item.key === key)?.content || ''
+  const riskKey = diagnosis.risk ? `risk.${diagnosis.risk.level.toLowerCase()}` : 'risk.medium'
+  const riskContent = configuredContent(riskKey) || configuredContent('risk.medium.label')
+  const riskCopy = parseOpsConfigContent(riskContent, {
+    title: diagnosis.risk?.label || '待复核风险',
+    description: diagnosis.risk?.reason || '请结合田间情况继续观察。'
+  })
+  const observeCopy = parseOpsConfigContent(configuredContent('action.observe'), {
+    title: '继续观察',
+    description: '记录变化并按建议时间复查。'
+  })
+  const expertCopy = parseOpsConfigContent(configuredContent('expert_review.high-risk'), {
+    title: '建议农技员复核',
+    description: '当前问题风险较高或容易混淆，请结合田间情况进一步确认。'
+  })
+  const safetyCopy = parseOpsConfigContent(configuredContent('safety.uncertain-pesticide'), {
+    title: '建议先停用待确认的药剂',
+    description: '当前结果触发了安全规则校验，请先让当地农技人员复核，再决定是否用药。'
+  })
+  const canUseObserveCopy = (action: DiagnosisAction) =>
+    action.type === 'OBSERVE' && action.safetyLevel !== 'CHEMICAL_REVIEW' && diagnosis.safety?.passed !== false
+  const displayActions: DiagnosisAction[] = diagnosis.actions.length
+    ? diagnosis.actions
+    : [{ type: 'OBSERVE', title: observeCopy.title, description: observeCopy.description }]
   const loop = loopOverride || diagnosis.loop || { stage: 'JUDGMENT' as const, updatedAt: diagnosis.updatedAt }
   const verifyLoop = async (outcome: DiagnosisVerificationOutcome) => {
     if (verifyingRef.current) return
@@ -128,7 +159,7 @@ export default function DiagnosisResultPage() {
     }
   }
   const createTask = async () => {
-    const action = diagnosis.actions.find((item) => item.type === 'DO_NOW') || diagnosis.actions[0]
+    const action = displayActions.find((item) => item.type === 'DO_NOW') || displayActions[0]
     if (!action) {
       Taro.showToast({ title: '当前没有可转成任务的建议，请先补充图片或联系农技员', icon: 'none' })
       return
@@ -180,18 +211,18 @@ export default function DiagnosisResultPage() {
       <View className='result-summary'>
         <View className='result-summary__top'>
           <Badge tone='neutral'>辅助判断</Badge>
-          {diagnosis.risk ? <RiskBadge level={diagnosis.risk.level} label={diagnosis.risk.label} /> : null}
+          {diagnosis.risk ? <RiskBadge level={diagnosis.risk.level} label={riskCopy.title} /> : null}
         </View>
         <Text className='result-summary__crop'>{diagnosis.crop}</Text>
         <Text className='result-summary__issue'>{issue?.name || '暂未识别到明确问题'}</Text>
         {issue ? <Text className='result-summary__confidence'>可信度 {formatConfidence(issue.confidence)}</Text> : null}
-        <Text className='result-summary__reason'>{diagnosis.risk?.reason}</Text>
+        <Text className='result-summary__reason'>{riskCopy.description}</Text>
       </View>
 
       {diagnosis.expertReview?.required || diagnosis.status === 'NEED_EXPERT_REVIEW' ? (
         <View className='expert-review-callout'>
-          <Text className='expert-review-callout__title'>建议农技员复核</Text>
-          <Text>{diagnosis.expertReview?.message || '当前问题风险较高或容易混淆，请结合田间情况进一步确认。'}</Text>
+          <Text className='expert-review-callout__title'>{expertCopy.title}</Text>
+          <Text>{diagnosis.expertReview?.message || expertCopy.description}</Text>
         </View>
       ) : null}
 
@@ -199,8 +230,8 @@ export default function DiagnosisResultPage() {
 
       {diagnosis.safety && !diagnosis.safety.passed ? (
         <View className='result-safety-callout'>
-          <Text className='result-safety-callout__title'>建议先停用待确认的药剂</Text>
-          <Text>当前结果触发了安全规则校验，请先让当地农技人员复核，再决定是否用药。</Text>
+          <Text className='result-safety-callout__title'>{safetyCopy.title}</Text>
+          <Text>{safetyCopy.description}</Text>
           {diagnosis.safety.violationCodes.length > 0 ? <Text className='result-safety-callout__codes'>安全提示：{diagnosis.safety.violationCodes.join('、')}</Text> : null}
         </View>
       ) : null}
@@ -220,14 +251,14 @@ export default function DiagnosisResultPage() {
       <View className='section'>
         <Text className='section-title'>下一步怎么做</Text>
         <View className='result-actions'>
-          {diagnosis.actions.map((action) => (
+          {displayActions.map((action) => (
             <View className={`result-action result-action--${action.type.toLowerCase()}`} key={`${action.type}-${action.title}`}>
               <View className='result-action__top'>
                 <Badge tone={action.type === 'AVOID' ? 'danger' : action.type === 'DO_NOW' ? 'success' : 'neutral'}>{actionLabels[action.type]}</Badge>
                 {action.dueAt ? <Text>{formatDateTime(action.dueAt)}</Text> : null}
               </View>
-              <Text className='result-action__title'>{action.title}</Text>
-              {action.description ? <Text className='result-action__description'>{action.description}</Text> : null}
+              <Text className='result-action__title'>{canUseObserveCopy(action) && opsConfigs.some((item) => item.key === 'action.observe') ? observeCopy.title : action.title}</Text>
+              {action.description || (canUseObserveCopy(action) && opsConfigs.some((item) => item.key === 'action.observe')) ? <Text className='result-action__description'>{canUseObserveCopy(action) && opsConfigs.some((item) => item.key === 'action.observe') ? observeCopy.description : action.description}</Text> : null}
             </View>
           ))}
         </View>
@@ -242,7 +273,7 @@ export default function DiagnosisResultPage() {
       <View className='fixed-footer'>
         <ButtonGroup>
           <Button variant='secondary' onClick={() => Taro.switchTab({ url: '/pages/diagnosis/index' })}>补充拍摄</Button>
-          <Button loading={creatingTask} disabled={!diagnosis.actions.length} onClick={createTask}>{diagnosis.actions.length ? '创建农事任务' : '暂无可创建任务'}</Button>
+          <Button loading={creatingTask} disabled={!displayActions.length} onClick={createTask}>{displayActions.length ? '创建农事任务' : '暂无可创建任务'}</Button>
         </ButtonGroup>
       </View>
     </View>

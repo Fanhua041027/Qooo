@@ -1,9 +1,14 @@
 import Taro from '@tarojs/taro'
-import type { ApiEnvelope, CreateFarmInput, CreatePlotInput, CreateTaskInput, DiagnosisRecord, DiagnosisLoopState, DiagnosisVerificationOutcome, Farm, FarmTask, LoginResult, Notification, PageResult, Plot, ServerCreateDiagnosisInput, ServerDiagnosisRecord, ServerDiagnosisResult, UpdateTaskInput } from '@nongjianzhen/types'
+import type { ApiEnvelope, ChatMessage, CommunityPost, CreateCommunityPostInput, CreateFarmInput, CreatePlotInput, CreateShopOrderInput, CreateTaskInput, DiagnosisRecord, DiagnosisLoopState, DiagnosisVerificationOutcome, ExpertChatSession, Farm, FarmTask, LoginResult, Notification, NotificationPreferences, OpsConfig, OpsConfigCategory, OpsConfigPreview, OpsConfigVersion, PageResult, Plot, ServerCreateDiagnosisInput, ServerDiagnosisRecord, ServerDiagnosisResult, ShopOrder, UpdateTaskInput, WeatherForecastResult, WeatherHistoryResult } from '@nongjianzhen/types'
 import type { ApiTransport, TransportRequest } from '@nongjianzhen/api-client'
 import { ApiRequestError } from '@/services/http'
 import { buildMockKnowledgeResult } from './agriculture-knowledge'
+import { AGRICULTURE_OPS_CONFIGS } from '@/content/ops-config-seed'
 import { seedDiagnoses, seedFarms, seedTasks } from './seed'
+import { DEFAULT_DIAGNOSIS_CONFIG, validateJevTransition } from '../../packages/diagnosis-engine/src/decision-config'
+import { validateOpsConfigContent } from '@/pages/ops-config/policy'
+import { COMMUNITY_POSTS, EXPERTS, SHOP_PRODUCTS, WEATHER_OVERVIEW, createChatSession } from './extended-features'
+import { OPS_CONFIG_STORAGE_KEY, readMockOpsConfigs, writeMockOpsConfigs } from './ops-config'
 
 const STORAGE_KEY = 'nongjianzhen_mock_db_v1'
 const ACCESS_TOKEN_STORAGE_KEY = 'nongjianzhen_access_token'
@@ -21,6 +26,8 @@ interface MockTask extends FarmTask {
   completedNote?: string
 }
 
+type MockOpsConfig = OpsConfig
+
 function defaultLoop(now = new Date().toISOString()): DiagnosisLoopState {
   return { stage: 'JUDGMENT', updatedAt: now }
 }
@@ -30,7 +37,21 @@ interface MockDatabase {
   diagnoses: MockDiagnosis[]
   tasks: MockTask[]
   messages: Notification[]
+  notificationPreferences: NotificationPreferences
+  opsConfigs: MockOpsConfig[]
+  shopOrders?: ShopOrder[]
+  communityPosts?: CommunityPost[]
+  chatSessions?: Record<string, ExpertChatSession>
   sequence: number
+}
+
+function defaultOpsConfigs(): MockOpsConfig[] {
+  return AGRICULTURE_OPS_CONFIGS.map((item) => ({ ...item, previousVersions: item.previousVersions.map((version) => ({ ...version })) }))
+}
+
+function mergeDefaultOpsConfigs(items: MockOpsConfig[]) {
+  const keys = new Set(items.map((item) => item.key))
+  return [...items, ...defaultOpsConfigs().filter((item) => !keys.has(item.key))]
 }
 
 function toServerDiagnosisRecord(record: MockDiagnosis): ServerDiagnosisRecord {
@@ -41,7 +62,9 @@ function toServerDiagnosisRecord(record: MockDiagnosis): ServerDiagnosisRecord {
           name: record.model.name,
           version: record.model.version,
           traceId: record.model.traceId || `mock_trace_${record.id}`,
-          knowledgeVersion: record.model.knowledgeVersion || 'mock-knowledge'
+          knowledgeVersion: record.model.knowledgeVersion || 'mock-knowledge',
+          configVersion: record.model.configVersion,
+          configSnapshot: record.model.configSnapshot
         },
         crop: record.crop,
         stage: record.growthStage || '',
@@ -53,9 +76,12 @@ function toServerDiagnosisRecord(record: MockDiagnosis): ServerDiagnosisRecord {
           lookalikes: issue.lookalikes
         })),
         actions: record.actions.map((action) => ({
+          type: action.type,
           title: action.title,
           description: action.description || '',
-          priority: action.type === 'DO_NOW' ? 'now' : action.type === 'OBSERVE' ? 'follow_up' : 'today'
+          priority: action.type === 'DO_NOW' ? 'now' : action.type === 'OBSERVE' ? 'follow_up' : 'today',
+          dueAt: action.dueAt,
+          safetyLevel: action.safetyLevel
         })),
         avoidActions: record.actions.filter((action) => action.type === 'AVOID').map((action) => action.title),
         followUpQuestions: record.followUpQuestions || [],
@@ -100,10 +126,23 @@ function getDatabase(): MockDatabase {
   if (stored?.farms && stored?.diagnoses && stored?.tasks) {
     if (!stored.messages) {
       stored.messages = []
-      saveDatabase(stored)
     }
+    stored.notificationPreferences ||= { diagnosisCompleted: true, diagnosisFailed: true, taskDue: true, taskOverdue: true, system: true }
+    const sharedOpsConfigs = Taro.getStorageSync<MockOpsConfig[]>(OPS_CONFIG_STORAGE_KEY)
+    if (Array.isArray(sharedOpsConfigs)) {
+      stored.opsConfigs = readMockOpsConfigs()
+    } else {
+      stored.opsConfigs = stored.opsConfigs ? mergeDefaultOpsConfigs(stored.opsConfigs) : defaultOpsConfigs()
+      writeMockOpsConfigs(stored.opsConfigs)
+    }
+    stored.shopOrders ||= []
+    stored.communityPosts ||= COMMUNITY_POSTS.map((post) => ({ ...post, tags: [...post.tags] }))
+    stored.chatSessions ||= {}
+    saveDatabase(stored)
     return stored
   }
+  const sharedOpsConfigs = Taro.getStorageSync<MockOpsConfig[]>(OPS_CONFIG_STORAGE_KEY)
+  const initialOpsConfigs = Array.isArray(sharedOpsConfigs) ? readMockOpsConfigs() : defaultOpsConfigs()
   const initial: MockDatabase = {
     farms: seedFarms.map((farm) => ({ ...farm, plots: farm.plots?.map((plot) => ({ ...plot })) })),
     diagnoses: seedDiagnoses.map((diagnosis) => ({
@@ -119,8 +158,14 @@ function getDatabase(): MockDatabase {
     })),
     tasks: seedTasks.map((task) => ({ ...task })),
     messages: [{ id: 'message_demo_001', type: 'SYSTEM', title: '欢迎使用农间诊', content: '拍下作物异常部位，先获得一个可执行的初步判断。', targetType: 'diagnosis', createdAt: new Date().toISOString(), readAt: null }],
+    notificationPreferences: { diagnosisCompleted: true, diagnosisFailed: true, taskDue: true, taskOverdue: true, system: true },
+    opsConfigs: initialOpsConfigs,
+    shopOrders: [],
+    communityPosts: COMMUNITY_POSTS.map((post) => ({ ...post, tags: [...post.tags] })),
+    chatSessions: {},
     sequence: 10
   }
+  if (!Array.isArray(sharedOpsConfigs)) writeMockOpsConfigs(initial.opsConfigs)
   Taro.setStorageSync(storageKey, initial)
   return initial
 }
@@ -129,13 +174,48 @@ function saveDatabase(database: MockDatabase) {
   Taro.setStorageSync(getStorageKey(), database)
 }
 
+function saveOpsConfigs(database: MockDatabase) {
+  writeMockOpsConfigs(database.opsConfigs)
+  saveDatabase(database)
+}
+
 function nextId(database: MockDatabase, prefix: string) {
   database.sequence += 1
   return `${prefix}_mock_${String(database.sequence).padStart(4, '0')}`
 }
 
 function response<T>(database: MockDatabase, data: T): ApiEnvelope<T> {
-  return { code: 'OK', message: 'success', data, requestId: `mock_req_${String(database.sequence).padStart(4, '0')}` }
+  const requestId = `mock_req_${String(database.sequence).padStart(4, '0')}`
+  return { code: 'OK', message: 'success', data, requestId, traceId: `mock_trace_${requestId}` }
+}
+
+function assertOpsAccount() {
+  if (!['ops_p0_001', 'ops_expert_p0_001', 'ops_admin_p0_001'].includes(getAccountId())) throw new ApiRequestError('FORBIDDEN', '只有运营、农艺专家或管理员可以管理配置')
+}
+
+function getOpsRole() {
+  if (getAccountId() === 'ops_admin_p0_001') return 'ADMIN'
+  if (getAccountId() === 'ops_expert_p0_001') return 'EXPERT'
+  return 'OPERATOR'
+}
+
+function getOpsDisplayName() {
+  const role = getOpsRole()
+  return role === 'ADMIN' ? '管理员测试账号' : role === 'EXPERT' ? '农艺专家测试账号' : '运营测试账号'
+}
+
+function nextConfigVersion(version: string) {
+  const match = version.match(/^v(\d+)\.(\d+)$/)
+  if (match) return `v${match[1]}.${Number(match[2]) + 1}`
+  const integerMatch = version.match(/^v(\d+)$/)
+  return integerMatch ? `v${Number(integerMatch[1]) + 1}` : 'v1.0'
+}
+
+function validateOpsContent(content: unknown, category?: OpsConfigCategory) {
+  const normalized = typeof content === 'string' ? content.trim() : ''
+  const error = validateOpsConfigContent(normalized, category)
+  if (error) throw new ApiRequestError(category === 'SAFETY' ? 'OPS_CONFIG_SAFETY_BLOCKED' : 'OPS_CONFIG_INVALID', error)
+  return normalized
 }
 
 function completeDiagnosis(record: MockDiagnosis): MockDiagnosis {
@@ -146,7 +226,13 @@ function completeDiagnosis(record: MockDiagnosis): MockDiagnosis {
     status: 'COMPLETED',
     updatedAt: new Date().toISOString(),
     progress: undefined,
-    ...result
+    ...result,
+    model: {
+      ...result.model,
+      // 结果必须保留创建诊断时的配置快照，避免后续运营修改影响历史结果。
+      configVersion: record.model.configVersion || result.model.configVersion,
+      configSnapshot: record.model.configSnapshot || result.model.configSnapshot,
+    }
   }
 }
 
@@ -182,12 +268,182 @@ export const mockTransport: ApiTransport = {
         accessToken: `mock_token_${accountId}`,
         tokenType: 'Bearer',
         expiresIn: '7d',
-        user: { id: accountId, nickname: '向阳农场主', role: 'farmer' }
+        user: { id: accountId, nickname: accountId === 'ops_admin_p0_001' ? '管理员测试账号' : accountId === 'ops_expert_p0_001' ? '农艺专家测试账号' : accountId === 'ops_p0_001' ? '运营测试账号' : '向阳农场主', role: accountId === 'ops_admin_p0_001' ? 'admin' : accountId === 'ops_expert_p0_001' ? 'expert' : accountId === 'ops_p0_001' ? 'operator' : 'farmer' }
       } satisfies LoginResult) as ApiEnvelope<TResponse>
     }
 
     if (method === 'POST' && path === '/api/v1/auth/logout') {
       return response(database, undefined) as ApiEnvelope<TResponse>
+    }
+
+    if (path === '/api/v1/ops/configs' || path === '/api/v1/ops/configs/preview' || path.startsWith('/api/v1/ops/configs/')) {
+      assertOpsAccount()
+      if (method === 'GET' && path === '/api/v1/ops/configs') {
+        return response(database, { items: database.opsConfigs, total: database.opsConfigs.length }) as ApiEnvelope<TResponse>
+      }
+      if (method === 'POST' && path === '/api/v1/ops/configs') {
+        const input = request.body as { key?: string; name?: string; description?: string; category?: OpsConfigCategory; content?: string }
+        const key = String(input.key || '').trim()
+        const name = String(input.name || '').trim()
+        const description = String(input.description || '').trim()
+        const categories: OpsConfigCategory[] = ['RISK', 'ACTION', 'IMAGE_QUALITY', 'SAFETY', 'EXPERT_REVIEW', 'HOME']
+        if (!/^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$/.test(key) || database.opsConfigs.some((config) => config.key === key) || !name || !description || !input.category || !categories.includes(input.category)) throw new ApiRequestError('OPS_CONFIG_INVALID', '配置 key、名称、说明和分类不能为空或不合法')
+        if (input.category === 'SAFETY' && !['EXPERT', 'ADMIN'].includes(getOpsRole())) throw new ApiRequestError('FORBIDDEN', '安全配置只能由农艺专家或管理员发布')
+        const content = validateOpsContent(input.content, input.category)
+        const item: MockOpsConfig = { key, name, description, category: input.category, status: 'PUBLISHED', content, version: 'v1.0', updatedAt: new Date().toISOString(), updatedBy: getOpsDisplayName(), previousVersions: [] }
+        database.opsConfigs.unshift(item)
+        saveOpsConfigs(database)
+        return response(database, { ...item, previousVersions: item.previousVersions.map((entry) => ({ ...entry })) }) as ApiEnvelope<TResponse>
+      }
+      if (method === 'POST' && path === '/api/v1/ops/configs/preview') {
+        const input = request.body as { key?: string; category?: OpsConfigCategory; content?: string }
+        const content = validateOpsContent(input.content, input.category)
+        const category = ['RISK', 'ACTION', 'IMAGE_QUALITY', 'SAFETY', 'EXPERT_REVIEW', 'HOME'].includes(input.category || '') ? input.category as OpsConfigPreview['category'] : undefined
+        return response(database, { key: input.key, category, content, valid: true, errors: [] } satisfies OpsConfigPreview) as ApiEnvelope<TResponse>
+      }
+      const versionsMatch = path.match(/^\/api\/v1\/ops\/configs\/([^/]+)\/versions$/)
+      if (method === 'GET' && versionsMatch) {
+        const item = database.opsConfigs.find((config) => config.key === decodeURIComponent(versionsMatch[1]))
+        if (!item) throw new ApiRequestError('OPS_CONFIG_NOT_FOUND', '运营配置不存在')
+        const items: OpsConfigVersion[] = [{ version: item.version, content: item.content, updatedAt: item.updatedAt, updatedBy: item.updatedBy }, ...item.previousVersions.filter((entry) => entry.version !== item.version)]
+        return response(database, { items, total: items.length }) as ApiEnvelope<TResponse>
+      }
+      const rollbackMatch = path.match(/^\/api\/v1\/ops\/configs\/([^/]+)\/rollback$/)
+      if (method === 'POST' && rollbackMatch) {
+        if (!['EXPERT', 'ADMIN'].includes(getOpsRole()) && database.opsConfigs.find((config) => config.key === decodeURIComponent(rollbackMatch[1]))?.category === 'SAFETY') throw new ApiRequestError('FORBIDDEN', '安全配置只能由农艺专家或管理员回滚')
+        const item = database.opsConfigs.find((config) => config.key === decodeURIComponent(rollbackMatch[1]))
+        if (!item) throw new ApiRequestError('OPS_CONFIG_NOT_FOUND', '运营配置不存在')
+        const version = String((request.body as { version?: string })?.version || '')
+        const target = item.previousVersions.find((entry) => entry.version === version)
+        if (!target) throw new ApiRequestError('OPS_CONFIG_VERSION_NOT_FOUND', '要恢复的配置版本不存在')
+        // Mock 回滚也复用当前校验规则，保持与真实服务端一致。
+        const content = validateOpsContent(target.content, item.category)
+        const now = new Date().toISOString()
+        const requestId = `mock_req_${String(database.sequence).padStart(4, '0')}`
+        const nextVersion = nextConfigVersion(item.version)
+        item.previousVersions = [{ version: item.version, content: item.content, updatedAt: item.updatedAt, updatedBy: item.updatedBy, action: 'ROLLBACK', requestId, traceId: `mock_trace_${requestId}` }, ...item.previousVersions]
+        item.content = content
+        item.version = nextVersion
+        item.updatedAt = now
+        item.updatedBy = getOpsDisplayName()
+        saveOpsConfigs(database)
+        return response(database, { ...item, previousVersions: item.previousVersions.map((entry) => ({ ...entry })) }) as ApiEnvelope<TResponse>
+      }
+      const configMatch = path.match(/^\/api\/v1\/ops\/configs\/([^/]+)$/)
+      if (configMatch) {
+        const item = database.opsConfigs.find((config) => config.key === decodeURIComponent(configMatch[1]))
+        if (!item) throw new ApiRequestError('OPS_CONFIG_NOT_FOUND', '运营配置不存在')
+        if (method === 'GET') return response(database, item) as ApiEnvelope<TResponse>
+        if (method === 'PUT' || method === 'PATCH') {
+          if (!['EXPERT', 'ADMIN'].includes(getOpsRole()) && item.category === 'SAFETY') throw new ApiRequestError('FORBIDDEN', '安全配置只能由农艺专家或管理员发布')
+          const body = request.body as { content?: string; expectedVersion?: string }
+          if (body.expectedVersion && body.expectedVersion !== item.version) throw new ApiRequestError('OPS_CONFIG_VERSION_CONFLICT', '配置版本已被更新，请刷新后重试')
+          const content = validateOpsContent(body.content, item.category)
+          const now = new Date().toISOString()
+          const requestId = `mock_req_${String(database.sequence).padStart(4, '0')}`
+          item.previousVersions = [{ version: item.version, content: item.content, updatedAt: item.updatedAt, updatedBy: item.updatedBy, action: 'UPDATE', requestId, traceId: `mock_trace_${requestId}` }, ...item.previousVersions]
+          item.content = content
+          item.version = nextConfigVersion(item.version)
+          item.updatedAt = now
+          item.updatedBy = getOpsDisplayName()
+          saveOpsConfigs(database)
+          return response(database, { ...item, previousVersions: item.previousVersions.map((entry) => ({ ...entry })) }) as ApiEnvelope<TResponse>
+        }
+      }
+    }
+
+    if (method === 'GET' && path === '/api/v1/weather/overview') {
+      return response(database, { ...WEATHER_OVERVIEW, updatedAt: new Date().toISOString() }) as ApiEnvelope<TResponse>
+    }
+
+    if (method === 'GET' && path === '/api/v1/weather/forecast') {
+      const now = new Date()
+      const daily = WEATHER_OVERVIEW.forecast.map((day, index) => ({ ...day, date: new Date(now.getTime() + index * 86400000).toISOString().slice(0, 10) }))
+      const location = String(request.query?.location || WEATHER_OVERVIEW.location)
+      const forecast: WeatherForecastResult = { location, updatedAt: now.toISOString(), startDate: daily[0].date, endDate: daily[daily.length - 1].date, daily, source: 'MOCK' }
+      return response(database, forecast) as ApiEnvelope<TResponse>
+    }
+
+    if (method === 'GET' && path === '/api/v1/weather/history') {
+      const end = new Date()
+      const start = new Date(end.getTime() - 6 * 86400000)
+      const days = Array.from({ length: 7 }, (_, index) => {
+        const date = new Date(start.getTime() + index * 86400000).toISOString().slice(0, 10)
+        return { date, condition: index % 2 ? '晴' : '多云', high: 29, low: 21, average: 25, precipitation: index % 2 ? 5 : 20, humidity: 72, wind: '东南风 2 级' }
+      })
+      const location = String(request.query?.location || WEATHER_OVERVIEW.location)
+      const history: WeatherHistoryResult = { location, startDate: days[0].date, endDate: days[days.length - 1].date, updatedAt: end.toISOString(), days, source: 'MOCK' }
+      return response(database, history) as ApiEnvelope<TResponse>
+    }
+
+    if (path === '/api/v1/shop/products' || path === '/api/v1/shop/orders') {
+      if (method === 'GET' && path === '/api/v1/shop/products') {
+        const category = String(request.query?.category || '')
+        const items = category ? SHOP_PRODUCTS.filter((product) => product.category === category) : SHOP_PRODUCTS
+        return response(database, { items, total: items.length }) as ApiEnvelope<TResponse>
+      }
+      if (method === 'POST' && path === '/api/v1/shop/orders') {
+        const input = request.body as CreateShopOrderInput
+        if (!input?.address?.trim() || !Array.isArray(input.items) || input.items.length === 0) throw new ApiRequestError('SHOP_ORDER_INVALID', '请填写收货信息并至少选择一件商品')
+        const items = input.items.map((item) => {
+          const product = SHOP_PRODUCTS.find((candidate) => candidate.id === item.productId)
+          if (!product || !Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > product.stock) throw new ApiRequestError('SHOP_PRODUCT_UNAVAILABLE', '商品库存或数量不可用，请刷新后重试')
+          return { product, quantity: item.quantity }
+        })
+        const order: ShopOrder = { id: nextId(database, 'order'), items, total: items.reduce((sum, item) => sum + item.product.price * item.quantity, 0), address: input.address.trim(), status: 'PENDING_PAYMENT', createdAt: new Date().toISOString() }
+        database.shopOrders ||= []
+        database.shopOrders.unshift(order)
+        saveDatabase(database)
+        return response(database, order) as ApiEnvelope<TResponse>
+      }
+    }
+
+    if (path === '/api/v1/community/posts' || path.startsWith('/api/v1/community/posts/')) {
+      database.communityPosts ||= COMMUNITY_POSTS.map((post) => ({ ...post, tags: [...post.tags] }))
+      if (method === 'GET' && path === '/api/v1/community/posts') return response(database, { items: database.communityPosts, total: database.communityPosts.length }) as ApiEnvelope<TResponse>
+      if (method === 'POST' && path === '/api/v1/community/posts') {
+        const input = request.body as CreateCommunityPostInput
+        if (!input?.title?.trim() || !input.content?.trim()) throw new ApiRequestError('COMMUNITY_POST_INVALID', '标题和内容不能为空')
+        const post: CommunityPost = { id: nextId(database, 'post'), author: getAccountId().startsWith('ops_') ? '农间诊内容组' : '向阳农场主', role: getAccountId().startsWith('ops_') ? 'OFFICIAL' : 'FARMER', crop: input.crop?.trim() || undefined, title: input.title.trim(), content: input.content.trim(), tags: input.tags?.filter(Boolean).slice(0, 5) || [], likes: 0, comments: 0, liked: false, createdAt: new Date().toISOString() }
+        database.communityPosts.unshift(post)
+        saveDatabase(database)
+        return response(database, post) as ApiEnvelope<TResponse>
+      }
+      const likeMatch = path.match(/^\/api\/v1\/community\/posts\/([^/]+)\/like$/)
+      if (method === 'POST' && likeMatch) {
+        const post = database.communityPosts.find((candidate) => candidate.id === decodeURIComponent(likeMatch[1]))
+        if (!post) throw new ApiRequestError('COMMUNITY_POST_NOT_FOUND', '帖子不存在')
+        post.liked = !post.liked
+        post.likes = Math.max(0, post.likes + (post.liked ? 1 : -1))
+        saveDatabase(database)
+        return response(database, post) as ApiEnvelope<TResponse>
+      }
+    }
+
+    if (method === 'GET' && path === '/api/v1/experts') return response(database, { items: EXPERTS, total: EXPERTS.length }) as ApiEnvelope<TResponse>
+    if (path.startsWith('/api/v1/expert-chats/')) {
+      const expertId = path.split('/')[3]
+      const expert = EXPERTS.find((candidate) => candidate.id === expertId)
+      if (!expert) throw new ApiRequestError('EXPERT_NOT_FOUND', '专家不存在')
+      database.chatSessions ||= {}
+      if (method === 'GET') {
+        database.chatSessions[expert.id] ||= createChatSession(expert)
+        saveDatabase(database)
+        return response(database, database.chatSessions[expert.id]) as ApiEnvelope<TResponse>
+      }
+      const messageMatch = path.match(/^\/api\/v1\/expert-chats\/([^/]+)\/messages$/)
+      if (method === 'POST' && messageMatch) {
+        const text = String((request.body as { text?: string })?.text || '').trim()
+        if (!text) throw new ApiRequestError('CHAT_MESSAGE_INVALID', '消息不能为空')
+        database.chatSessions[expert.id] ||= createChatSession(expert)
+        const session = database.chatSessions[expert.id]
+        const now = new Date().toISOString()
+        const message: ChatMessage = { id: nextId(database, 'chat'), sender: 'USER', text, createdAt: now }
+        const reply: ChatMessage = { id: nextId(database, 'chat'), sender: 'EXPERT', text: '收到。请补充一张异常部位近照和一张整株分布照片，我会结合生长期继续判断。', createdAt: new Date(Date.now() + 800).toISOString() }
+        session.messages.push(message, reply)
+        saveDatabase(database)
+        return response(database, message) as ApiEnvelope<TResponse>
+      }
     }
 
     if (method === 'GET' && path === '/api/v1/farms') {
@@ -268,7 +524,7 @@ export const mockTransport: ApiTransport = {
         possibleIssues: [],
         actions: [],
         disclaimer: '以上为辅助判断，请结合当地农技员意见确认。',
-        model: { name: 'demo-diagnosis-model', version: 'mock-1.0.0' },
+        model: { name: 'demo-diagnosis-model', version: 'mock-1.0.0', configVersion: DEFAULT_DIAGNOSIS_CONFIG.configVersion, configSnapshot: Object.fromEntries(database.opsConfigs.map((config) => [config.key, config.content])) },
         requestId: `mock_req_${id}`,
         loop: defaultLoop(now),
         progress: { stage: 'ANALYZING', label: '正在比对症状特征', percent: 62 },
@@ -325,7 +581,10 @@ export const mockTransport: ApiTransport = {
       if (!outcome || !['IMPROVED', 'UNCHANGED', 'WORSE', 'UNKNOWN'].includes(outcome)) throw new ApiRequestError('DIAGNOSIS_INVALID_VERIFICATION', '复查结果不完整')
       const now = new Date().toISOString()
       const current = database.diagnoses[index]
-      current.loop = { ...(current.loop || defaultLoop(current.updatedAt)), stage: outcome === 'IMPROVED' ? 'CLOSED' : outcome === 'UNKNOWN' ? 'VERIFICATION' : 'REASSESSMENT', outcome, note: input.note, verifiedAt: now, updatedAt: now }
+      const nextStage = outcome === 'IMPROVED' ? 'CLOSED' : outcome === 'UNKNOWN' ? 'VERIFICATION' : 'REASSESSMENT'
+      const transition = validateJevTransition(DEFAULT_DIAGNOSIS_CONFIG, { from: current.loop?.stage || 'JUDGMENT', to: nextStage, hasTask: Boolean(current.loop?.taskId), outcome })
+      if (!transition.allowed) throw new ApiRequestError('DIAGNOSIS_INVALID_STATE', `JEV 状态转换被拒绝: ${transition.reasonCode}`)
+      current.loop = { ...(current.loop || defaultLoop(current.updatedAt)), stage: nextStage, outcome, note: input.note, verifiedAt: now, updatedAt: now }
       current.updatedAt = now
       saveDatabase(database)
       return response(database, toServerDiagnosisRecord(current)) as ApiEnvelope<TResponse>
@@ -352,6 +611,28 @@ export const mockTransport: ApiTransport = {
       return response(database, { count: database.messages.filter((message) => !message.readAt).length }) as ApiEnvelope<TResponse>
     }
 
+    if (method === 'POST' && path === '/api/v1/messages/read-all') {
+      const unread = database.messages.filter((message) => !message.readAt)
+      const readAt = new Date().toISOString()
+      unread.forEach((message) => { message.readAt = readAt })
+      saveDatabase(database)
+      return response(database, { updated: unread.length }) as ApiEnvelope<TResponse>
+    }
+
+    if (method === 'GET' && path === '/api/v1/message-preferences') {
+      return response(database, database.notificationPreferences) as ApiEnvelope<TResponse>
+    }
+
+    if (method === 'PATCH' && path === '/api/v1/message-preferences') {
+      const input = request.body as Partial<NotificationPreferences>
+      const keys: (keyof NotificationPreferences)[] = ['diagnosisCompleted', 'diagnosisFailed', 'taskDue', 'taskOverdue', 'system']
+      keys.forEach((key) => { if (typeof input[key] === 'boolean') database.notificationPreferences[key] = input[key] as never })
+      database.notificationPreferences.system = true
+      database.notificationPreferences.taskOverdue = true
+      saveDatabase(database)
+      return response(database, database.notificationPreferences) as ApiEnvelope<TResponse>
+    }
+
     const messageReadMatch = path.match(/^\/api\/v1\/messages\/([^/]+)\/read$/)
     if (method === 'POST' && messageReadMatch) {
       const message = database.messages.find((item) => item.id === decodeURIComponent(messageReadMatch[1]))
@@ -368,6 +649,13 @@ export const mockTransport: ApiTransport = {
         : undefined
       if (existing) return response(database, existing) as ApiEnvelope<TResponse>
       const now = new Date().toISOString()
+      const linkedDiagnosis = input.diagnosisId ? database.diagnoses.find((item) => item.id === input.diagnosisId) : undefined
+      if (input.diagnosisId && !linkedDiagnosis) throw new ApiRequestError('DIAGNOSIS_NOT_FOUND', '未找到该诊断记录')
+      if (linkedDiagnosis) {
+        const loop = linkedDiagnosis.loop || defaultLoop(linkedDiagnosis.updatedAt)
+        const transition = validateJevTransition(DEFAULT_DIAGNOSIS_CONFIG, { from: loop.stage, to: 'EXECUTION', hasTask: true })
+        if (!transition.allowed) throw new ApiRequestError('DIAGNOSIS_INVALID_STATE', `JEV 状态转换被拒绝: ${transition.reasonCode}`)
+      }
       const task: MockTask = {
         id: nextId(database, 'task'),
         clientRequestId: input.clientRequestId,
@@ -376,6 +664,7 @@ export const mockTransport: ApiTransport = {
         farmId: input.farmId,
         plotId: input.plotId,
         diagnosisId: input.diagnosisId,
+        assignee: input.assignee,
         priority: input.priority || 'MEDIUM',
         status: 'PENDING',
         dueAt: input.dueAt,
@@ -395,6 +684,14 @@ export const mockTransport: ApiTransport = {
     if (method === 'POST' && completeTaskMatch) {
       const task = database.tasks.find((item) => item.id === completeTaskMatch[1])
       if (!task) throw new ApiRequestError('TASK_NOT_FOUND', '未找到该任务')
+      if (task.status === 'COMPLETED') return response(database, task) as ApiEnvelope<TResponse>
+      if (task.diagnosisId) {
+        const diagnosis = database.diagnoses.find((item) => item.id === task.diagnosisId)
+        if (!diagnosis) throw new ApiRequestError('DIAGNOSIS_NOT_FOUND', '未找到该诊断记录')
+        const loop = diagnosis.loop || defaultLoop(diagnosis.updatedAt)
+        const transition = validateJevTransition(DEFAULT_DIAGNOSIS_CONFIG, { from: loop.stage, to: 'VERIFICATION', hasTask: true })
+        if (!transition.allowed) throw new ApiRequestError('DIAGNOSIS_INVALID_STATE', `JEV 状态转换被拒绝: ${transition.reasonCode}`)
+      }
       const input = request.body as { note?: string } | undefined
       task.status = 'COMPLETED'
       task.completedNote = input?.note?.trim() || undefined

@@ -3,6 +3,7 @@ import type { ApiEnvelope } from '@nongjianzhen/types'
 import type { ApiTransport, TransportRequest } from '@nongjianzhen/api-client'
 import { API_BASE_URL, AUTH_TOKEN_STORAGE_KEY } from '@/config/env'
 import { createClientRequestId } from '@/utils/id'
+import { clearAuthSession } from './auth-session'
 
 export class ApiRequestError extends Error {
   constructor(
@@ -31,6 +32,11 @@ function getAccessToken() {
   }
 }
 
+function normalizeErrorCode(code: string) {
+  if (code === 'OPS_CONFIG_VERSION_CONFLICT') return 'CONFIG_VERSION_CONFLICT'
+  return code
+}
+
 export const taroTransport: ApiTransport = {
   async request<TResponse, TBody>(request: TransportRequest<TBody>) {
     const requestId = createClientRequestId('req')
@@ -52,8 +58,9 @@ export const taroTransport: ApiTransport = {
       })
       const envelope = response.data as Partial<ApiEnvelope<TResponse>> | undefined
       const errorEnvelope = envelope as (Partial<ApiEnvelope<TResponse>> & { details?: unknown }) | undefined
-      const code = envelope?.code || (response.statusCode >= 200 && response.statusCode < 300 ? 'INVALID_RESPONSE' : 'HTTP_ERROR')
+      const code = normalizeErrorCode(envelope?.code || (response.statusCode >= 200 && response.statusCode < 300 ? 'INVALID_RESPONSE' : 'HTTP_ERROR'))
       if (response.statusCode < 200 || response.statusCode >= 300 || envelope?.code !== 'OK') {
+        if (response.statusCode === 401 || code === 'UNAUTHORIZED' || code === 'AUTH_EXPIRED') clearAuthSession('expired')
         throw new ApiRequestError(code, envelope?.message || '请求失败，请稍后重试', envelope?.requestId || requestId, errorEnvelope?.details ?? envelope?.data, envelope?.traceId || traceId)
       }
       return envelope as ApiEnvelope<TResponse>

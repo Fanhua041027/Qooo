@@ -14,6 +14,8 @@ import { NotificationModule } from './modules/notification/notification.module';
 import { FileModule } from './modules/file/file.module';
 import { KnowledgeModule } from './modules/knowledge/knowledge.module';
 import { HealthModule } from './modules/health/health.module';
+import { OpsModule } from './modules/ops/ops.module';
+import { FieldServicesModule } from './modules/field-services/field-services.module';
 
 @Module({
   imports: [
@@ -29,6 +31,8 @@ import { HealthModule } from './modules/health/health.module';
     FileModule,
     KnowledgeModule,
     HealthModule,
+    OpsModule,
+    FieldServicesModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: JwtAuthGuard }],
 })

@@ -15,7 +15,7 @@
 .result-follow-up__question:last-child { border-bottom: 0; }
 .result-follow-up__question text { display: block; }
 .result-follow-up__question text + text { margin-top: 8rpx; color: var(--qd-muted-foreground); font-size: 26rpx; }
-.result-summary { padding: 36rpx; border-radius: 24rpx; background: var(--qd-surface); box-shadow: 0 6rpx 12rpx rgba(20, 40, 29, 0.07); }
+.result-summary { padding: 36rpx; border: 1rpx solid var(--qd-border); border-radius: 24rpx; background: var(--qd-surface); }
 .result-summary__top { display: flex; justify-content: space-between; }
 .result-summary__crop { display: block; margin-top: 34rpx; color: var(--qd-muted-foreground); font-size: 27rpx; }
 .result-summary__issue { display: block; margin-top: 8rpx; font-size: 46rpx; font-weight: 720; line-height: 1.25; }
@@ -31,6 +31,8 @@
 .result-evidence__index { display: flex; width: 42rpx; height: 42rpx; flex: 0 0 auto; align-items: center; justify-content: center; border-radius: 50%; background: var(--qd-surface-muted); color: var(--qd-primary); font-size: 24rpx; font-weight: 700; }
 .result-actions { margin-top: 20rpx; overflow: hidden; border-radius: 18rpx; background: var(--qd-surface); }
 .result-action { padding: 28rpx; border-bottom: 1rpx solid var(--qd-border); }
+.result-action--do_now { background: #fbfefc; }
+.result-action--avoid { background: #fffafa; }
 .result-action:last-child { border-bottom: 0; }
 .result-action__top { display: flex; align-items: center; justify-content: space-between; color: var(--qd-muted-foreground); font-size: 23rpx; }
 .result-action__title { display: block; margin-top: 16rpx; font-size: 31rpx; font-weight: 650; }
@@ -42,4 +44,12 @@
 @media (prefers-reduced-motion: reduce) {
   .result-processing__indicator view { animation: none; }
   .result-processing__track view { transition: none; }
+}
+
+@media screen and (max-width: 380px) {
+  .result-summary { padding: 28rpx; }
+  .result-summary__issue { font-size: 40rpx; }
+  .result-summary__top { align-items: flex-start; gap: 12rpx; flex-wrap: wrap; }
+  .result-follow-up { padding-top: 48rpx; }
+  .result-follow-up__title { font-size: 38rpx; }
 }

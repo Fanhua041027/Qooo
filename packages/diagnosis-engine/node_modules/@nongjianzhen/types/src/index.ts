@@ -88,6 +88,7 @@ export interface DiagnosisAction {
   title: string
   description?: string
   dueAt?: string
+  safetyLevel?: 'OBSERVATION' | 'BIOSECURITY' | 'CHEMICAL_REVIEW'
 }
 
 export interface DiagnosisModel {
@@ -98,6 +99,9 @@ export interface DiagnosisModel {
   promptVersion?: string
   policyVersion?: string
   knowledgeVersion?: string
+  configVersion?: string
+  /** 诊断生成时使用的已发布文案快照，避免历史结果被后续运营修改覆盖。 */
+  configSnapshot?: Record<string, string>
 }
 
 export type DiagnosisDecision = 'RESULT' | 'ASK_MORE' | 'EXPERT_REVIEW' | 'REJECTED'
@@ -170,6 +174,7 @@ export interface Plot {
   growthStage?: string
   areaMu?: number
   plantedAt?: string
+  cropVariety?: string
 }
 
 export interface Farm {
@@ -193,12 +198,13 @@ export interface CreatePlotInput {
   cropName: string
   growthStage?: string
   areaMu?: number
-  plantedAt?: string
+  plantedAt: string
+  cropVariety?: string
 }
 
 export type UpdatePlotInput = Partial<CreatePlotInput>
 
-export type TaskStatus = 'PENDING' | 'COMPLETED' | 'OVERDUE'
+export type TaskStatus = 'PENDING' | 'COMPLETED' | 'OVERDUE' | 'CANCELLED'
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH'
 
 export interface FarmTask {
@@ -208,6 +214,7 @@ export interface FarmTask {
   farmId?: string
   plotId?: string
   diagnosisId?: string
+  assignee?: string
   priority: TaskPriority
   status: TaskStatus
   dueAt?: string
@@ -228,6 +235,14 @@ export interface Notification {
   createdAt: string
 }
 
+export interface NotificationPreferences {
+  diagnosisCompleted: boolean
+  diagnosisFailed: boolean
+  taskDue: boolean
+  taskOverdue: boolean
+  system: boolean
+}
+
 export interface CreateTaskInput {
   /** 客户端重试时复用，服务端据此保证同一任务不会重复创建。 */
   clientRequestId?: string
@@ -236,6 +251,7 @@ export interface CreateTaskInput {
   farmId?: string
   plotId?: string
   diagnosisId?: string
+  assignee?: string
   priority?: TaskPriority
   dueAt?: string
 }
@@ -245,12 +261,180 @@ export interface UpdateTaskInput {
   description?: string
   priority?: TaskPriority
   dueAt?: string
+  assignee?: string
 }
 
 export interface AuthIdentity {
   userId: string
   displayName: string
   isMock: boolean
+  role?: string
+}
+
+export type OpsConfigCategory = 'RISK' | 'ACTION' | 'IMAGE_QUALITY' | 'SAFETY' | 'EXPERT_REVIEW' | 'HOME'
+export type OpsConfigStatus = 'PUBLISHED' | 'DRAFT'
+
+export interface OpsConfigVersion {
+  version: string
+  content: string
+  updatedAt: string
+  updatedBy: string
+  action?: 'UPDATE' | 'ROLLBACK'
+  requestId?: string
+  traceId?: string
+}
+
+export interface OpsConfig {
+  key: string
+  name: string
+  description: string
+  category: OpsConfigCategory
+  status: OpsConfigStatus
+  content: string
+  version: string
+  updatedAt: string
+  updatedBy: string
+  previousVersions: OpsConfigVersion[]
+  fallback?: boolean
+  locale?: 'zh-CN'
+  sortOrder?: number
+  requestId?: string
+}
+
+export interface WeatherForecastDay {
+  date: string
+  weekday: string
+  condition: string
+  icon: string
+  high: number
+  low: number
+  precipitation: number
+  wind: string
+}
+
+export interface WeatherAlert {
+  id: string
+  level: 'INFO' | 'WARNING' | 'DANGER'
+  title: string
+  content: string
+  action: string
+}
+
+export interface WeatherOverview {
+  location: string
+  updatedAt: string
+  current: { temperature: number; feelsLike: number; condition: string; icon: string; humidity: number; wind: string; uvIndex: number }
+  forecast: WeatherForecastDay[]
+  alerts: WeatherAlert[]
+  source?: 'AGENT_TECH' | 'MOCK'
+}
+
+export interface WeatherHourlyPoint {
+  time: string
+  temperature: number
+  precipitation: number
+  precipitationProbability: number
+  humidity: number
+  windSpeed: number
+  condition: string
+}
+
+export interface WeatherForecastResult {
+  location: string
+  timezone?: string
+  updatedAt: string
+  startDate: string
+  endDate: string
+  daily: WeatherForecastDay[]
+  hourly?: WeatherHourlyPoint[]
+  source: 'AGENT_TECH' | 'MOCK'
+}
+
+export interface WeatherHistoryDay {
+  date: string
+  condition: string
+  high: number
+  low: number
+  average: number
+  precipitation: number
+  humidity: number
+  wind: string
+}
+
+export interface WeatherHistoryResult {
+  location: string
+  startDate: string
+  endDate: string
+  updatedAt: string
+  days: WeatherHistoryDay[]
+  source: 'AGENT_TECH' | 'MOCK'
+}
+
+export type ShopCategory = 'BIOCONTROL' | 'TOOLS' | 'SEEDS' | 'FERTILIZER' | 'PROTECTION'
+
+export interface ShopProduct {
+  id: string
+  name: string
+  subtitle: string
+  category: ShopCategory
+  categoryLabel: string
+  price: number
+  unit: string
+  stock: number
+  badge?: string
+  safetyNote: string
+  suitableCrops: string[]
+}
+
+export interface ShopCartItem { product: ShopProduct; quantity: number }
+export interface CreateShopOrderInput { items: Array<{ productId: string; quantity: number }>; address: string; note?: string }
+export interface ShopOrder { id: string; items: ShopCartItem[]; total: number; address: string; status: 'PENDING_PAYMENT' | 'PROCESSING' | 'COMPLETED'; createdAt: string }
+
+export interface CommunityPost {
+  id: string
+  author: string
+  role: 'FARMER' | 'EXPERT' | 'OFFICIAL'
+  crop?: string
+  title: string
+  content: string
+  tags: string[]
+  likes: number
+  comments: number
+  liked: boolean
+  createdAt: string
+}
+
+export interface CreateCommunityPostInput { title: string; content: string; crop?: string; tags?: string[] }
+
+export interface ExpertProfile {
+  id: string
+  name: string
+  title: string
+  specialty: string
+  crops: string[]
+  online: boolean
+  responseTime: string
+  rating: number
+  cases: number
+}
+
+export interface ChatMessage { id: string; sender: 'USER' | 'EXPERT' | 'SYSTEM'; text: string; createdAt: string }
+export interface ExpertChatSession { id: string; expert: ExpertProfile; status: 'WAITING' | 'ACTIVE' | 'CLOSED'; messages: ChatMessage[] }
+
+export interface OpsConfigPreview {
+  key?: string
+  category?: OpsConfigCategory
+  content: string
+  valid: boolean
+  errors: string[]
+}
+
+export interface CreateOpsConfigInput {
+  key: string
+  name: string
+  description: string
+  category: OpsConfigCategory
+  content: string
 }
 
 // 以下类型严格对应后端 HTTP 契约；页面通过 API Client 适配为上方稳定的 UI 类型。
@@ -283,6 +467,8 @@ export interface ServerDiagnosisResult {
     knowledgeVersion: string
     promptVersion?: string
     policyVersion?: string
+    configVersion?: string
+    configSnapshot?: Record<string, string>
   }
   crop: string
   stage: string
@@ -294,9 +480,12 @@ export interface ServerDiagnosisResult {
     lookalikes?: string[]
   }>
   actions: Array<{
+    type?: DiagnosisActionType
     title: string
     description: string
     priority: 'now' | 'today' | 'follow_up'
+    dueAt?: string
+    safetyLevel?: 'OBSERVATION' | 'BIOSECURITY' | 'CHEMICAL_REVIEW'
   }>
   avoidActions: string[]
   followUpQuestions: Array<{ code: string; prompt: string; captureHint?: string }>

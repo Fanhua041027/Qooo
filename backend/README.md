@@ -22,6 +22,7 @@ src/modules/
   notification/  站内消息
   file/          预签名上传和临时访问 URL
   knowledge/     MVP 农技知识查询
+  ops/            运营配置、版本、权限、回滚
   health/        依赖健康检查
 ```
 
@@ -86,6 +87,8 @@ docker compose --profile experience up -d --build --wait
 ```
 
 其余账号见 `../docs/TEST-ACCOUNTS.md`。模拟登录只应在开发和体验环境开启。
+
+运营配置联调账号为 `ops_p0_001`（角色 `OPERATOR`）；`ops_expert_p0_001`（角色 `EXPERT`）和 `ops_admin_p0_001`（角色 `ADMIN`）可执行安全配置发布和回滚。普通农户账号 `user_p0_farmer_001` 访问运营配置写接口会返回 `FORBIDDEN`。
 
 ## 验证
 

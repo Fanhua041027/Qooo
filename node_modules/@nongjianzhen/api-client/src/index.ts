@@ -1,4 +1,4 @@
-import type { ApiEnvelope, AuthIdentity, CreateDiagnosisInput, CreateFarmInput, CreatePlotInput, CreateTaskInput, CreateUploadInput, DiagnosisAction, DiagnosisRecord, DiagnosisLoopState, DiagnosisVerificationOutcome, Farm, FarmTask, LoginResult, Notification, PageResult, Plot, ServerCreateDiagnosisInput, ServerDiagnosisRecord, ServerFarm, ServerFarmTask, ServerPlot, ServerRiskLevel, UpdateFarmInput, UpdatePlotInput, UpdateTaskInput, UploadTicket } from '@nongjianzhen/types'
+import type { ApiEnvelope, AuthIdentity, CreateDiagnosisInput, CreateFarmInput, CreatePlotInput, CreateTaskInput, CreateUploadInput, CreateOpsConfigInput, CreateCommunityPostInput, CreateShopOrderInput, DiagnosisAction, DiagnosisRecord, DiagnosisLoopState, DiagnosisVerificationOutcome, Farm, FarmTask, LoginResult, Notification, NotificationPreferences, OpsConfig, OpsConfigPreview, OpsConfigVersion, PageResult, Plot, ServerCreateDiagnosisInput, ServerDiagnosisRecord, ServerFarm, ServerFarmTask, ServerPlot, ServerRiskLevel, UpdateFarmInput, UpdatePlotInput, UpdateTaskInput, UploadTicket, WeatherOverview, WeatherForecastResult, WeatherHistoryResult, ShopProduct, ShopOrder, CommunityPost, ExpertProfile, ExpertChatSession, ChatMessage } from '@nongjianzhen/types'
 
 export type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'DELETE' | 'PUT'
 export interface TransportRequest<TBody = unknown> { method: HttpMethod; path: string; body?: TBody; query?: Record<string, string | number | boolean | undefined>; idempotencyKey?: string }
@@ -9,6 +9,8 @@ const riskMap: Record<ServerRiskLevel, NonNullable<DiagnosisRecord['risk']>['lev
 function stringArray(value: unknown) {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0) : []
 }
+
+const actionTypes: DiagnosisAction['type'][] = ['DO_NOW', 'OBSERVE', 'AVOID', 'EXPERT_REVIEW']
 
 function normalizeDiagnosis(raw: ServerDiagnosisRecord): DiagnosisRecord {
   const result = raw.result && typeof raw.result === 'object' ? raw.result : undefined
@@ -22,12 +24,21 @@ function normalizeDiagnosis(raw: ServerDiagnosisRecord): DiagnosisRecord {
     .filter((item) => item && typeof item.title === 'string')
     .map((item) => ({ type: item.title.includes('不要') || item.title.includes('避免') || item.title.includes('暂不') ? 'AVOID' : item.priority === 'now' ? 'DO_NOW' : 'OBSERVE', title: item.title, description: item.description, dueAt: item.priority === 'now' ? new Date(Date.now() + 86400000).toISOString() : undefined }))
   const status = raw.status === 'created' || raw.status === 'uploading' ? 'PENDING' : raw.status === 'analyzing' ? 'PROCESSING' : raw.status === 'completed' ? 'COMPLETED' : raw.status === 'need_more_images' ? 'NEED_MORE_IMAGES' : raw.status === 'need_expert_review' ? 'NEED_EXPERT_REVIEW' : 'FAILED'
+  const serverActions = (Array.isArray(result?.actions) ? result.actions : []).filter((item) => item && typeof item.title === 'string')
+  serverActions.forEach((item, index) => {
+    const action = actions[index]
+    if (!action) return
+    if (item.type && actionTypes.includes(item.type)) action.type = item.type
+    if (item.dueAt) action.dueAt = item.dueAt
+    if (item.safetyLevel) action.safetyLevel = item.safetyLevel
+  })
+  actions.forEach((action) => { action.safetyLevel = action.safetyLevel || (action.type === 'EXPERT_REVIEW' ? 'BIOSECURITY' : action.type === 'AVOID' ? 'BIOSECURITY' : 'OBSERVATION') })
   const followUpQuestions = Array.isArray(result?.followUpQuestions)
     ? result.followUpQuestions.filter((item) => item && typeof item.code === 'string' && typeof item.prompt === 'string')
     : undefined
   const needExpertReview = Boolean(result?.needExpertReview)
   const loop = result?.loop ? { ...result.loop } : undefined
-  return { id: raw.id, status, crop: result?.crop || raw.cropName || '待确认作物', plotId: raw.plotId || undefined, createdAt: raw.createdAt, updatedAt: raw.updatedAt, possibleIssues: possibleProblems.map((item) => ({ name: item.name, confidence: typeof item.confidence === 'number' && Number.isFinite(item.confidence) ? Math.min(1, Math.max(0, item.confidence)) : 0, evidence: stringArray(item.evidence), riskLevel: riskMap[item.riskLevel] || 'MEDIUM', lookalikes: stringArray(item.lookalikes) })), risk, actions, disclaimer: result?.disclaimer || '以上为辅助判断，请结合当地农技员意见确认。', model: { name: result?.model?.name || 'unknown', version: result?.model?.version || 'unknown', traceId: result?.model?.traceId, knowledgeVersion: result?.model?.knowledgeVersion }, requestId: raw.requestId, decision: result?.decision?.toUpperCase() as DiagnosisRecord['decision'], loop, followUpQuestions, expertReview: result ? { required: needExpertReview, reasonCodes: stringArray(result.expertReviewReasons), message: needExpertReview ? '建议让农技人员结合田间情况复核。' : undefined } : undefined, safety: result?.safety, progress: status === 'PROCESSING' ? { stage: 'ANALYZING', label: '正在比对症状特征', percent: 62 } : undefined, error: status === 'FAILED' ? { code: raw.failureCode || 'DIAGNOSIS_FAILED', message: raw.failureMessage || '诊断服务暂时不可用' } : undefined }
+  return { id: raw.id, status, crop: result?.crop || raw.cropName || '待确认作物', plotId: raw.plotId || undefined, createdAt: raw.createdAt, updatedAt: raw.updatedAt, possibleIssues: possibleProblems.map((item) => ({ name: item.name, confidence: typeof item.confidence === 'number' && Number.isFinite(item.confidence) ? Math.min(1, Math.max(0, item.confidence)) : 0, evidence: stringArray(item.evidence), riskLevel: riskMap[item.riskLevel] || 'MEDIUM', lookalikes: stringArray(item.lookalikes) })), risk, actions, disclaimer: result?.disclaimer || '以上为辅助判断，请结合当地农技员意见确认。', model: { name: result?.model?.name || 'unknown', version: result?.model?.version || 'unknown', traceId: result?.model?.traceId, knowledgeVersion: result?.model?.knowledgeVersion, configVersion: result?.model?.configVersion, configSnapshot: result?.model?.configSnapshot }, requestId: raw.requestId, decision: result?.decision?.toUpperCase() as DiagnosisRecord['decision'], loop, followUpQuestions, expertReview: result ? { required: needExpertReview, reasonCodes: stringArray(result.expertReviewReasons), message: needExpertReview ? '建议让农技人员结合田间情况复核。' : undefined } : undefined, safety: result?.safety, progress: status === 'PROCESSING' ? { stage: 'ANALYZING', label: '正在比对症状特征', percent: 62 } : undefined, error: status === 'FAILED' ? { code: raw.failureCode || 'DIAGNOSIS_FAILED', message: raw.failureMessage || '诊断服务暂时不可用' } : undefined }
 }
 
 function normalizeFarm(raw: ServerFarm | Farm): Farm {
@@ -43,7 +54,7 @@ function normalizeFarm(raw: ServerFarm | Farm): Farm {
     plots: raw.plots?.map((plot) => normalizePlot(plot as ServerPlot))
   }
 }
-function normalizePlot(raw: ServerPlot): Plot { return { id: raw.id, farmId: raw.farmId, name: raw.name, cropName: raw.cropName, growthStage: raw.growthStage || undefined, areaMu: raw.areaMu || undefined, plantedAt: raw.plantedAt } }
+function normalizePlot(raw: ServerPlot): Plot { return { id: raw.id, farmId: raw.farmId, name: raw.name, cropName: raw.cropName, growthStage: raw.growthStage || undefined, areaMu: raw.areaMu || undefined, plantedAt: raw.plantedAt, cropVariety: raw.cropVariety || undefined } }
 function normalizeTask(raw: ServerFarmTask): FarmTask { return { ...raw, status: raw.status.toUpperCase() as FarmTask['status'], priority: raw.priority.toUpperCase() as FarmTask['priority'] } }
 function normalizeMessage(raw: Notification): Notification {
   return { ...raw, type: raw.type.toUpperCase() as Notification['type'], readAt: raw.readAt || null }
@@ -89,7 +100,28 @@ export class ApiClient {
   listMessages() { return this.transport.request<PageResult<Notification>>({ method: 'GET', path: '/api/v1/messages' }).then((response) => ({ ...response, data: { ...response.data, items: response.data.items.map(normalizeMessage) } })) }
   unreadMessageCount() { return this.transport.request<{ count: number }>({ method: 'GET', path: '/api/v1/messages/unread-count' }) }
   markMessageRead(messageId: string) { return this.transport.request<Notification>({ method: 'POST', path: `/api/v1/messages/${messageId}/read` }).then((response) => ({ ...response, data: normalizeMessage(response.data) })) }
+  markAllMessagesRead() { return this.transport.request<{ updated: number }>({ method: 'POST', path: '/api/v1/messages/read-all' }) }
+  getMessagePreferences() { return this.transport.request<NotificationPreferences>({ method: 'GET', path: '/api/v1/message-preferences' }) }
+  updateMessagePreferences(input: Partial<NotificationPreferences>) { return this.transport.request<NotificationPreferences, Partial<NotificationPreferences>>({ method: 'PATCH', path: '/api/v1/message-preferences', body: input }) }
+  getWeather(location?: string, latitude?: number, longitude?: number) { return this.transport.request<WeatherOverview>({ method: 'GET', path: '/api/v1/weather/overview', query: { location, latitude, longitude } }) }
+  getWeatherForecast(input: { location?: string; latitude?: number; longitude?: number; days?: number; granularity?: 'daily' | 'hourly' } = {}) { return this.transport.request<WeatherForecastResult>({ method: 'GET', path: '/api/v1/weather/forecast', query: input }) }
+  getWeatherHistory(input: { location?: string; latitude?: number; longitude?: number; startDate?: string; endDate?: string } = {}) { return this.transport.request<WeatherHistoryResult>({ method: 'GET', path: '/api/v1/weather/history', query: input }) }
+  listShopProducts(category?: string) { return this.transport.request<PageResult<ShopProduct>>({ method: 'GET', path: '/api/v1/shop/products', query: { category } }) }
+  createShopOrder(input: CreateShopOrderInput) { return this.transport.request<ShopOrder, CreateShopOrderInput>({ method: 'POST', path: '/api/v1/shop/orders', body: input, idempotencyKey: `shop_${Date.now()}` }) }
+  listCommunityPosts(topic?: string) { return this.transport.request<PageResult<CommunityPost>>({ method: 'GET', path: '/api/v1/community/posts', query: { topic } }) }
+  createCommunityPost(input: CreateCommunityPostInput) { return this.transport.request<CommunityPost, CreateCommunityPostInput>({ method: 'POST', path: '/api/v1/community/posts', body: input }) }
+  likeCommunityPost(postId: string) { return this.transport.request<CommunityPost>({ method: 'POST', path: `/api/v1/community/posts/${postId}/like` }) }
+  listExperts() { return this.transport.request<PageResult<ExpertProfile>>({ method: 'GET', path: '/api/v1/experts' }) }
+  getExpertChat(expertId: string) { return this.transport.request<ExpertChatSession>({ method: 'GET', path: `/api/v1/expert-chats/${expertId}` }) }
+  sendExpertMessage(expertId: string, text: string) { return this.transport.request<ChatMessage, { text: string }>({ method: 'POST', path: `/api/v1/expert-chats/${expertId}/messages`, body: { text } }) }
+  listOpsConfigs() { return this.transport.request<PageResult<OpsConfig>>({ method: 'GET', path: '/api/v1/ops/configs' }) }
+  createOpsConfig(input: CreateOpsConfigInput) { return this.transport.request<OpsConfig, CreateOpsConfigInput>({ method: 'POST', path: '/api/v1/ops/configs', body: input }) }
+  getOpsConfig(configKey: string) { return this.transport.request<OpsConfig>({ method: 'GET', path: `/api/v1/ops/configs/${encodeURIComponent(configKey)}` }) }
+  previewOpsConfig(input: { key?: string; category?: string; content: string }) { return this.transport.request<OpsConfigPreview, typeof input>({ method: 'POST', path: '/api/v1/ops/configs/preview', body: input }) }
+  updateOpsConfig(configKey: string, content: string, expectedVersion?: string) { return this.transport.request<OpsConfig, { content: string; expectedVersion?: string }>({ method: 'PUT', path: `/api/v1/ops/configs/${encodeURIComponent(configKey)}`, body: { content, expectedVersion } }) }
+  rollbackOpsConfig(configKey: string, version: string) { return this.transport.request<OpsConfig, { version: string }>({ method: 'POST', path: `/api/v1/ops/configs/${encodeURIComponent(configKey)}/rollback`, body: { version } }) }
+  listOpsConfigVersions(configKey: string) { return this.transport.request<PageResult<OpsConfigVersion>>({ method: 'GET', path: `/api/v1/ops/configs/${encodeURIComponent(configKey)}/versions` }) }
 }
 
-export function toAuthIdentity(result: LoginResult): AuthIdentity { return { userId: result.user.id, displayName: result.user.nickname, isMock: result.user.id.startsWith('user_p0_') } }
+export function toAuthIdentity(result: LoginResult): AuthIdentity { return { userId: result.user.id, displayName: result.user.nickname, isMock: result.user.id.startsWith('user_p0_') || result.user.id.startsWith('ops_p0_'), role: result.user.role.toUpperCase() } }
 export * from '@nongjianzhen/types'

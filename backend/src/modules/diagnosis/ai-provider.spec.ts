@@ -150,4 +150,28 @@ describe('MockAiProvider', () => {
     expect(result.safety?.passed).toBe(false);
     expect(result.needExpertReview).toBe(true);
   });
+
+  it('任一候选问题达到高风险都必须触发专家复核', () => {
+    const result = enforceDiagnosisSafety({
+      decision: 'result',
+      model: { name: 'model', version: '1', traceId: 'trace', knowledgeVersion: 'test' },
+      crop: '番茄',
+      stage: '结果期',
+      possibleProblems: [
+        { name: '低风险候选', confidence: 0.95, riskLevel: 'low', evidence: ['证据一'] },
+        { name: '严重候选', confidence: 0.9, riskLevel: 'critical', evidence: ['证据二'] },
+      ],
+      actions: [{ title: '继续观察', description: '记录变化', priority: 'today' }],
+      avoidActions: [],
+      followUpQuestions: [],
+      needExpertReview: false,
+      expertReviewReasons: [],
+      needMoreImages: false,
+      disclaimer: '辅助判断。',
+    });
+
+    expect(result.decision).toBe('expert_review');
+    expect(result.needExpertReview).toBe(true);
+    expect(result.expertReviewReasons).toContain('OPS_CONFIG_REVIEW_THRESHOLD');
+  });
 });

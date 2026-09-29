@@ -1,3 +1,13 @@
+.diagnosis-page {
+  padding-top: 24rpx;
+  padding-bottom: calc(260rpx + env(safe-area-inset-bottom));
+}
+
+/* 诊断页同时有提交栏和底部导航，提交栏必须位于导航上方。 */
+.diagnosis-page .fixed-footer {
+  bottom: calc(112rpx + env(safe-area-inset-bottom));
+  z-index: var(--qd-z-modal, 40);
+}
 .diagnosis-steps { display: flex; margin-top: 36rpx; padding: 22rpx 0; border-top: 1rpx solid var(--qd-border); border-bottom: 1rpx solid var(--qd-border); }
 .diagnosis-step { display: flex; flex: 1; align-items: center; gap: 12rpx; color: var(--qd-muted-foreground); font-size: 25rpx; }
 .diagnosis-step text:first-child { display: flex; width: 40rpx; height: 40rpx; align-items: center; justify-content: center; border-radius: 50%; background: var(--qd-surface-muted); }
@@ -15,7 +25,8 @@
 .diagnosis-crop-option { min-height: 88rpx; padding: 0 20rpx; border: 1rpx solid var(--qd-border); border-radius: 999rpx; color: var(--qd-ink-secondary); font-size: 25rpx; line-height: 88rpx; }
 .diagnosis-crop-option--selected { border-color: var(--qd-primary); background: var(--qd-primary-soft); color: var(--qd-primary-strong); font-weight: 650; }
 .diagnosis-form__hint { display: block; margin-top: 10rpx; color: var(--qd-muted-foreground); font-size: 23rpx; line-height: 1.5; }
-.diagnosis-upload { display: flex; min-height: 330rpx; margin-top: 20rpx; flex-direction: column; align-items: center; justify-content: center; padding: 36rpx; border: 2rpx dashed #9ab5b7; border-radius: 20rpx; background: var(--qd-surface); text-align: center; }
+.diagnosis-upload { display: flex; min-height: 330rpx; margin-top: 20rpx; flex-direction: column; align-items: center; justify-content: center; padding: 36rpx; border: 2rpx dashed #9ab5b7; border-radius: 20rpx; background: var(--qd-surface); text-align: center; transition: background-color 160ms ease-out, border-color 160ms ease-out; }
+.diagnosis-upload:active { border-color: var(--qd-primary); background: var(--qd-primary-soft); }
 .diagnosis-upload__focus { width: 64rpx; height: 64rpx; margin-bottom: 24rpx; border: 5rpx solid var(--qd-primary); border-radius: 14rpx; box-shadow: inset 0 0 0 10rpx #fff; background: var(--qd-primary-soft); }
 .diagnosis-upload__title { font-size: 32rpx; font-weight: 650; }
 .diagnosis-upload__description { margin-top: 10rpx; color: var(--qd-muted-foreground); font-size: 25rpx; }
@@ -41,3 +52,11 @@
 .diagnosis-tip-row text:last-child { flex: 1; }
 .diagnosis-progress { height: 6rpx; margin-bottom: 16rpx; overflow: hidden; border-radius: 99rpx; background: var(--qd-surface-muted); }
 .diagnosis-progress__bar { width: 100%; height: 100%; border-radius: inherit; background: var(--qd-primary); transform: scaleX(0); transform-origin: left center; transition: transform 220ms ease-out; }
+
+@media screen and (max-width: 380px) {
+  .diagnosis-step { gap: 8rpx; font-size: 23rpx; }
+  .diagnosis-step text:first-child { width: 36rpx; height: 36rpx; }
+  .diagnosis-form { padding-right: 20rpx; padding-left: 20rpx; }
+  .diagnosis-preview { gap: 16rpx; padding: 18rpx; }
+  .diagnosis-preview__image { width: 176rpx; height: 200rpx; }
+}

@@ -10,9 +10,9 @@
   font-weight: 600;
 }
 
-.qd-badge--success { background: #e4f5eb; color: #116437; }
+.qd-badge--success { background: var(--qd-success-soft); color: #116437; }
 .qd-badge--warning { background: #fff1d7; color: #804800; }
-.qd-badge--danger { background: #fbe9eb; color: #a3212a; }
-.qd-badge--info { background: #e7f1fb; color: #195986; }
+.qd-badge--danger { background: var(--qd-danger-soft); color: #a3212a; }
+.qd-badge--info { background: var(--qd-info-soft); color: #195986; }
 
 .risk-badge__marker { margin-right: 6rpx; font-weight: 800; }

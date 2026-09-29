@@ -11,6 +11,9 @@ importers:
       '@nongjianzhen/api-client':
         specifier: workspace:*
         version: link:packages/api-client
+      '@nongjianzhen/diagnosis-engine':
+        specifier: workspace:*
+        version: link:packages/diagnosis-engine
       '@nongjianzhen/types':
         specifier: workspace:*
         version: link:packages/types

@@ -1,6 +1,7 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import axios from 'axios';
 import { ApiError } from '../../common/api-error';
 import { ErrorCode } from '../../common/error-codes';
 import { PrismaService } from '../../infrastructure/database/prisma.service';
@@ -31,12 +32,42 @@ export class AuthService {
     };
   }
 
-  wechatLogin() {
-    throw new ApiError(
-      ErrorCode.WECHAT_LOGIN_NOT_CONFIGURED,
-      '体验环境尚未配置微信 AppID 和 AppSecret，请使用模拟登录',
-      HttpStatus.NOT_IMPLEMENTED,
-    );
+  async wechatLogin(code: string) {
+    const appId = this.config.get<string>('WECHAT_APP_ID');
+    const appSecret = this.config.get<string>('WECHAT_APP_SECRET');
+    if (!appId || !appSecret) {
+      throw new ApiError(
+        ErrorCode.WECHAT_LOGIN_NOT_CONFIGURED,
+        '当前环境尚未配置微信 AppID 和 AppSecret，请联系管理员',
+        HttpStatus.NOT_IMPLEMENTED,
+      );
+    }
+
+    let payload: { openid?: string; unionid?: string; errcode?: number; errmsg?: string };
+    try {
+      const response = await axios.get('https://api.weixin.qq.com/sns/jscode2session', {
+        params: { appid: appId, secret: appSecret, js_code: code, grant_type: 'authorization_code' },
+        timeout: 8000,
+      });
+      payload = response.data as typeof payload;
+    } catch {
+      throw new ApiError(ErrorCode.UPSTREAM_ERROR, '微信登录服务暂时不可用，请稍后重试', HttpStatus.BAD_GATEWAY);
+    }
+    if (!payload.openid || payload.errcode) {
+      throw new ApiError(ErrorCode.UNAUTHORIZED, payload.errmsg || '微信登录凭证无效，请重新登录', HttpStatus.UNAUTHORIZED, { wechatCode: payload.errcode });
+    }
+
+    const user = await this.prisma.user.upsert({
+      where: { wechatOpenId: payload.openid },
+      create: { wechatOpenId: payload.openid, nickname: '微信农户', role: 'FARMER' },
+      update: payload.unionid ? { nickname: '微信农户' } : {},
+    });
+    return {
+      accessToken: await this.jwt.signAsync({ sub: user.id, role: user.role, nickname: user.nickname }),
+      tokenType: 'Bearer',
+      expiresIn: this.config.get('JWT_EXPIRES_IN', '7d'),
+      user: this.presentUser(user),
+    };
   }
 
   async getMe(userId: string) {

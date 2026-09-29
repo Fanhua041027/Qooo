@@ -14,10 +14,18 @@ page {
   --qd-ink-secondary: #465f62;
   --qd-border: #d4e0e1;
   --qd-success: #277a4c;
+  --qd-success-soft: #e4f5eb;
   --qd-warning: #9b5b12;
   --qd-warning-soft: #fff0d9;
   --qd-danger: #b63f37;
+  --qd-danger-soft: #fbe9eb;
   --qd-info: #246aa5;
+  --qd-info-soft: #e7f1fb;
+  --qd-focus: #4d9ca2;
+  --qd-overlay: rgba(23, 43, 46, .44);
+  --qd-z-sticky: 20;
+  --qd-z-modal: 40;
+  --qd-z-toast: 60;
   --qd-radius-sm: 8rpx;
   --qd-radius-md: 16rpx;
   --qd-radius-lg: 24rpx;

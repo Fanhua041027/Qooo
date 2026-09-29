@@ -12,12 +12,15 @@ import { chooseDiagnosisImage, MediaPermissionError, uploadDiagnosisImage } from
 import { useAuthStore } from '@/store/auth.store'
 import { createClientRequestId } from '@/utils/id'
 import { track } from '@/utils/analytics'
+import { splitOpsContent, useOpsConfigStore } from '@/store/ops-config.store'
+import { DEFAULT_OPS_CONFIGS } from '@/mocks/ops-config'
 import './index.scss'
 
 const cropOptions = ['番茄', '黄瓜', '水稻', '玉米', '柑橘']
 
 export default function DiagnosisPage() {
   const identity = useAuthStore((state) => state.identity)
+  const { configs, load: loadOpsConfig } = useOpsConfigStore()
   const [plots, setPlots] = useState<Plot[]>([])
   const [plotSelection, setPlotSelection] = useState(0)
   const [cropName, setCropName] = useState('番茄')
@@ -30,6 +33,9 @@ export default function DiagnosisPage() {
   const [permissionDenied, setPermissionDenied] = useState(false)
   const submittingRef = useRef(false)
   const clientRequestIdRef = useRef<string>()
+  const quickStart = splitOpsContent(configs.find((item) => item.key === 'home.quick-start')?.content || DEFAULT_OPS_CONFIGS.find((item) => item.key === 'home.quick-start')?.content || '')
+
+  useEffect(() => { void loadOpsConfig() }, [loadOpsConfig])
 
   useEffect(() => {
     let active = true
@@ -165,8 +171,8 @@ export default function DiagnosisPage() {
 
   return (
     <View className='page page--with-footer diagnosis-page'>
-      <Text className='page-title'>把异常部位拍清楚</Text>
-      <Text className='page-description'>一张清晰照片比多张远景更有用。结果仅用于辅助判断。</Text>
+      <Text className='page-title'>{quickStart.title}</Text>
+      <Text className='page-description'>{quickStart.body}</Text>
 
       <View className='diagnosis-steps' aria-label={loading ? '正在分析，第二步' : '正在拍摄，第一步'}>
         <View className={`diagnosis-step ${loading ? 'diagnosis-step--done' : 'diagnosis-step--active'}`}><Text>1</Text><Text>拍摄</Text></View>

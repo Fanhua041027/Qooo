@@ -6,6 +6,7 @@ import { useAuthStore } from '@/store/auth.store'
 import { requestTaskSubscription } from '@/services/subscription'
 import { API_MODE } from '@/config/env'
 import { track } from '@/utils/analytics'
+import { canManageOpsConfig } from '@/store/ops-config.store'
 import './index.scss'
 
 export default function ProfilePage() {
@@ -46,7 +47,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <View className='page profile-page'>
+    <View className='page page--with-footer profile-page'>
       <Text className='page-title'>我的</Text>
       {identity ? (
         <View className='profile-identity'>
@@ -63,6 +64,9 @@ export default function ProfilePage() {
           <Text className='profile-login__title'>登录并保存你的诊断记录</Text>
           <Text className='profile-login__description'>{API_MODE === 'mock' ? '开发环境使用模拟农户账号，数据保存在当前设备。' : '使用服务端接口登录后，诊断和任务会按账号保存。'}</Text>
           <Button block size='lg' loading={loading} onClick={login}>{API_MODE === 'mock' ? '模拟登录' : '开发账号登录'}</Button>
+          {API_MODE === 'mock' ? <Button block variant='secondary' loading={loading} onClick={() => loginWithMock('ops_p0_001')}>运营测试账号</Button> : null}
+          {API_MODE === 'mock' ? <Button block variant='ghost' loading={loading} onClick={() => loginWithMock('ops_expert_p0_001')}>农艺专家测试账号</Button> : null}
+          {API_MODE === 'mock' ? <Button block variant='ghost' loading={loading} onClick={() => loginWithMock('ops_admin_p0_001')}>管理员测试账号</Button> : null}
           {API_MODE === 'real' ? <Button block variant='ghost' loading={loading} onClick={loginWechat}>微信登录</Button> : null}
         </View>
       )}
@@ -70,9 +74,14 @@ export default function ProfilePage() {
       <View className='profile-menu'>
         <View onClick={() => Taro.navigateTo({ url: '/pages/diagnosis-history/index' })}><Text>诊断历史</Text><Text>查看记录</Text></View>
         <View onClick={() => Taro.navigateTo({ url: '/pages/messages/index' })}><Text>消息与提醒</Text><Text>查看站内消息</Text></View>
+        <View onClick={() => Taro.navigateTo({ url: '/pages/weather/index' })}><Text>田间天气</Text><Text>查看降雨和作业提醒</Text></View>
+        <View onClick={() => Taro.navigateTo({ url: '/pages/shop/index' })}><Text>农资小铺</Text><Text>查看基础田间用品</Text></View>
+        <View onClick={() => Taro.navigateTo({ url: '/pages/community/index' })}><Text>农友交流</Text><Text>分享和查看田间经验</Text></View>
+        <View onClick={() => Taro.navigateTo({ url: '/pages/expert-chat/index' })}><Text>专家复核</Text><Text>联系农技人员补充判断</Text></View>
         <View onClick={() => Taro.switchTab({ url: '/pages/farm/index' })}><Text>农场与地块</Text><Text>管理信息</Text></View>
         <View onClick={() => Taro.switchTab({ url: '/pages/tasks/index' })}><Text>农事任务</Text><Text>查看进度</Text></View>
         <View onClick={subscribe}><Text>微信订阅提醒</Text><Text>配置提醒</Text></View>
+        {identity && canManageOpsConfig(identity.role) ? <View onClick={() => Taro.navigateTo({ url: '/pages/ops-config/index' })}><Text>运营配置</Text><Text>管理诊断文案与安全边界</Text></View> : null}
       </View>
 
       <View className='profile-environment'>

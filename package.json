@@ -10,10 +10,18 @@
     "dev:weapp": "taro build --type weapp --watch",
     "build:weapp": "taro build --type weapp",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "content:validate": "node scripts/validate-agriculture-content.mjs",
+    "content:validate:approved": "node scripts/validate-agriculture-content.mjs --require-approved",
+    "qa:smoke:p0-11": "node scripts/qa/smoke-p0-11.mjs",
+    "qa:init:p0-11": "node scripts/qa/init-p0-11-data.mjs",
+    "qa:reset:p0-11": "node scripts/qa/reset-p0-11-data.mjs",
+    "release:check": "node scripts/release/check-release.mjs",
+    "release:check:code": "node scripts/release/check-release.mjs --code-only"
   },
   "dependencies": {
     "@nongjianzhen/api-client": "workspace:*",
+    "@nongjianzhen/diagnosis-engine": "workspace:*",
     "@nongjianzhen/types": "workspace:*",
     "@tarojs/components": "4.2.1",
     "@tarojs/plugin-framework-react": "4.2.1",

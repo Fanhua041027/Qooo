@@ -21,6 +21,7 @@
 - [页面与状态矩阵](./UX-STATE-MATRIX.md)
 - [接口与 Mock 边界](./API-CONTRACT.md)
 - [任务看板](./TASK-BOARD.md)
+- [运营配置页 PRD](./PRD-OPS-CONFIG.md)
 - [每日状态与阻塞项](./DAILY-STATUS.md)
 - [测试账号登记](./TEST-ACCOUNTS.md)
 

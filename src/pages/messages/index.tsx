@@ -79,7 +79,7 @@ export default function MessagesPage() {
     if (unread.length === 0) return
     setMarkingAllRead(true)
     try {
-      await Promise.all(unread.map((message) => messageApi.markRead(message.id)))
+      await messageApi.markAllRead()
       setItems((current) => current.map((item) => ({ ...item, readAt: item.readAt || new Date().toISOString() })))
     } catch (reason) {
       Taro.showToast({ title: reason instanceof Error ? reason.message : '全部已读失败', icon: 'none' })

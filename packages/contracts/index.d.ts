@@ -36,9 +36,12 @@ export interface DiagnosisProblem {
 }
 
 export interface DiagnosisAction {
+  type?: 'DO_NOW' | 'OBSERVE' | 'AVOID' | 'EXPERT_REVIEW';
   title: string;
   description: string;
   priority: 'now' | 'today' | 'follow_up';
+  dueAt?: string;
+  safetyLevel?: 'OBSERVATION' | 'BIOSECURITY' | 'CHEMICAL_REVIEW';
 }
 
 export interface DiagnosisResult {
@@ -50,6 +53,8 @@ export interface DiagnosisResult {
     knowledgeVersion: string;
     promptVersion: string;
     policyVersion: string;
+    configVersion?: string;
+    configSnapshot?: Record<string, string>;
   };
   crop: string;
   stage: string;

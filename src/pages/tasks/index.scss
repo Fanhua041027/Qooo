@@ -10,3 +10,10 @@
 .tasks-filter view:nth-child(2) .tasks-filter__count { color: var(--qd-danger); }
 .tasks-stale { display: flex; align-items: center; justify-content: space-between; gap: 18rpx; margin-top: 24rpx; padding: 18rpx 22rpx; border-radius: 14rpx; background: var(--qd-warning-soft); color: #74440f; font-size: 25rpx; line-height: 1.5; }.tasks-stale__action { flex: none; min-height: 88rpx; color: var(--qd-primary); font-weight: 700; line-height: 88rpx; }
 .tasks-list { margin-top: 26rpx; padding: 0 28rpx; }
+
+@media screen and (max-width: 380px) {
+  .tasks-overview > view { padding: 16rpx 12rpx; }
+  .tasks-overview__value { font-size: 32rpx; }
+  .tasks-filter view { font-size: 23rpx; }
+  .tasks-list { padding-right: 20rpx; padding-left: 20rpx; }
+}

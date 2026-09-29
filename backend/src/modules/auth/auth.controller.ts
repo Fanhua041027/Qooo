@@ -23,8 +23,8 @@ export class AuthController {
   @Post('wechat-login')
   @HttpCode(200)
   @ApiOperation({ summary: '微信 code 登录适配入口' })
-  wechatLogin(@Body() _input: WechatLoginDto) {
-    return this.auth.wechatLogin();
+  wechatLogin(@Body() input: WechatLoginDto) {
+    return this.auth.wechatLogin(input.code);
   }
 
   @Post('logout')

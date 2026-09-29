@@ -5,11 +5,13 @@
   "description": "Nongjianzhen MVP modular monolith API",
   "license": "UNLICENSED",
   "scripts": {
+    "prebuild": "npm run prisma:generate",
     "build": "nest build",
     "start": "node dist/main.js",
     "start:dev": "nest start --watch",
     "test": "jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json --runInBand",
+    "pretypecheck": "npm run prisma:generate",
     "typecheck": "tsc --noEmit",
     "prisma:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",

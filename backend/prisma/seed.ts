@@ -1,4 +1,5 @@
-import { PrismaClient, TaskPriority, TaskStatus, UserRole } from '@prisma/client';
+import { OpsConfigCategory, OpsConfigStatus, OpsConfigVersionAction, PrismaClient, TaskPriority, TaskStatus, UserRole } from '@prisma/client';
+import { DEFAULT_OPS_CONFIGS } from '../src/modules/ops/ops-config.defaults';
 
 const prisma = new PrismaClient();
 
@@ -32,6 +33,28 @@ async function main() {
       id: 'ops_p0_001',
       nickname: '运营测试账号',
       role: UserRole.OPERATOR,
+      mockAccount: true,
+    },
+  });
+
+  await prisma.user.upsert({
+    where: { id: 'ops_admin_p0_001' },
+    update: {},
+    create: {
+      id: 'ops_admin_p0_001',
+      nickname: '管理员测试账号',
+      role: UserRole.ADMIN,
+      mockAccount: true,
+    },
+  });
+
+  await prisma.user.upsert({
+    where: { id: 'ops_expert_p0_001' },
+    update: {},
+    create: {
+      id: 'ops_expert_p0_001',
+      nickname: '农艺专家测试账号',
+      role: UserRole.EXPERT,
       mockAccount: true,
     },
   });
@@ -92,6 +115,39 @@ async function main() {
       published: true,
     },
   });
+
+  for (const config of DEFAULT_OPS_CONFIGS) {
+    const saved = await prisma.opsConfig.upsert({
+      where: { key: config.key },
+      update: {},
+      create: {
+        key: config.key,
+        name: config.name,
+        description: config.description,
+        category: config.category as OpsConfigCategory,
+        status: OpsConfigStatus.PUBLISHED,
+        content: config.content,
+        version: 1,
+        updatedById: 'ops_p0_001',
+        updatedBy: '运营测试账号',
+      },
+    });
+    const existingVersion = await prisma.opsConfigVersion.findUnique({ where: { configId_version: { configId: saved.id, version: 1 } } });
+    if (!existingVersion) {
+      await prisma.opsConfigVersion.create({
+        data: {
+          configId: saved.id,
+          version: 1,
+          content: config.content,
+          action: OpsConfigVersionAction.UPDATE,
+          changedById: 'ops_p0_001',
+          changedBy: '运营测试账号',
+          requestId: 'seed_ops_config',
+          traceId: 'seed_ops_config',
+        },
+      });
+    }
+  }
 }
 
 main()

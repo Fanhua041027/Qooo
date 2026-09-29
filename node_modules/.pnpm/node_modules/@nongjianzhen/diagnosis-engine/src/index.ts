@@ -8,6 +8,16 @@ import type {
   RiskLevel
 } from '@nongjianzhen/types'
 
+export {
+  DEFAULT_DIAGNOSIS_CONFIG,
+  DEFAULT_DIAGNOSIS_CONFIG_VERSION,
+  applyDiagnosisOperationsConfig,
+  validateDiagnosisConfig,
+  validateJevTransition
+} from './decision-config'
+export { DIAGNOSIS_EVALUATION_FIXTURES, evaluateDiagnosisFixture } from './evaluation-fixtures'
+export type { DiagnosisEvaluationFixture, DiagnosisEvaluationObservation, DiagnosisFixtureEvaluation } from './evaluation-fixtures'
+
 export const DIAGNOSIS_ENGINE_VERSION = 'rules-1.0.0'
 export const DIAGNOSIS_PROMPT_VERSION = 'diagnosis-prompt-1.0.0'
 export const DIAGNOSIS_POLICY_VERSION = '1.0.0-mvp'
@@ -544,3 +554,5 @@ export function buildDiagnosisPrompt(input: DiagnosisPromptInput): { system: str
 
   return { system, user }
 }
+
+export * from './decision-config'

@@ -5,6 +5,10 @@ import { randomUUID } from 'node:crypto';
 export const DIAGNOSIS_AI_PROVIDER = Symbol('DIAGNOSIS_AI_PROVIDER');
 export type AiDecision = 'result' | 'ask_more' | 'expert_review' | 'rejected';
 export type AiRiskLevel = 'low' | 'medium' | 'high' | 'critical';
+export type AiActionType = 'DO_NOW' | 'OBSERVE' | 'AVOID' | 'EXPERT_REVIEW';
+export type AiSafetyLevel = 'OBSERVATION' | 'BIOSECURITY' | 'CHEMICAL_REVIEW';
+export const DIAGNOSIS_CONFIG_VERSION = 'ops-1.0.0';
+const REVIEW_CONFIDENCE_BY_RISK: Record<AiRiskLevel, number> = { low: 0.55, medium: 0.65, high: 0.75, critical: 0.85 };
 
 export interface DiagnosisAiInput {
   cropName?: string | null;
@@ -22,6 +26,7 @@ export interface DiagnosisAiOutput {
     knowledgeVersion: string;
     promptVersion?: string;
     policyVersion?: string;
+    configVersion?: string;
   };
   crop: string;
   stage: string;
@@ -32,7 +37,7 @@ export interface DiagnosisAiOutput {
     evidence: string[];
     lookalikes?: string[];
   }>;
-  actions: Array<{ title: string; description: string; priority: 'now' | 'today' | 'follow_up' }>;
+  actions: Array<{ type?: AiActionType; title: string; description: string; priority: 'now' | 'today' | 'follow_up'; dueAt?: string; safetyLevel?: AiSafetyLevel }>;
   avoidActions: string[];
   followUpQuestions: Array<{ code: string; prompt: string; captureHint?: string }>;
   needExpertReview: boolean;
@@ -115,6 +120,7 @@ const unsafePatterns = [
   { code: 'ABSOLUTE_DIAGNOSIS_LANGUAGE', pattern: /百分之百确诊|肯定是|一定能治好|无任何风险/u },
   { code: 'UNVERIFIED_CHEMICAL_GUIDANCE', pattern: /(?:亩用|每亩(?:使用|用)?|稀释)\s*\d+|\d+(?:\.\d+)?\s*(?:倍液|克|毫升|ml|mL|g)(?=\s|[，。；、,;]|$)|安全间隔期(?:为|是|需等待)?\s*\d+/u },
 ] as const;
+const asciiChemicalPattern = /(?:每亩|每公顷|稀释|安全间隔|\b\d+(?:\.\d+)?\s*(?:ml|mL|毫升|g|克|kg|公斤|倍)\b)/iu;
 const restrictedPesticidePattern = /百草枯|甲胺磷|甲基对硫磷|对硫磷|久效磷|磷胺|六六六|滴滴涕|毒杀芬|杀虫脒|氟乙酰胺|毒鼠强/u;
 const prohibitionBeforePesticidePattern = /(?:不要|禁止|严禁|不得|不可|停止|停用)(?:使用|用)?\s*$/u;
 
@@ -127,6 +133,7 @@ export function enforceDiagnosisSafety(output: DiagnosisAiOutput): DiagnosisAiOu
     output.disclaimer,
   ].join('\n');
   const violationCodes: string[] = unsafePatterns.filter(({ pattern }) => pattern.test(text)).map(({ code }) => code);
+  if (asciiChemicalPattern.test(text) && !violationCodes.includes('UNVERIFIED_CHEMICAL_GUIDANCE')) violationCodes.push('UNVERIFIED_CHEMICAL_GUIDANCE');
   const recommendsRestrictedPesticide = text
     .split(/[\n。！？；]/u)
     .some((sentence) => {
@@ -136,11 +143,36 @@ export function enforceDiagnosisSafety(output: DiagnosisAiOutput): DiagnosisAiOu
       return !prohibitionBeforePesticidePattern.test(prefix);
     });
   if (recommendsRestrictedPesticide) violationCodes.push('RESTRICTED_PESTICIDE_GUIDANCE');
-  if (!violationCodes.length) return { ...output, safety: { passed: true, violationCodes: [] } };
+  const normalizedActions = output.actions.map((action) => ({
+    ...action,
+    type: action.type || (action.title.includes('不') || action.title.includes('避免') ? 'AVOID' : action.priority === 'now' ? 'DO_NOW' : 'OBSERVE'),
+    safetyLevel: action.safetyLevel || (action.title.includes('隔离') || action.title.includes('复核') ? 'BIOSECURITY' : 'OBSERVATION'),
+  }));
+  // 任一候选命中高风险或低于对应置信度阈值都必须升级，不能只看排序第一项。
+  const requiresConfiguredReview = output.possibleProblems.some((problem) => (
+    problem.riskLevel === 'high' ||
+    problem.riskLevel === 'critical' ||
+    !Number.isFinite(problem.confidence) ||
+    problem.confidence < REVIEW_CONFIDENCE_BY_RISK[problem.riskLevel]
+  ));
+  if (!violationCodes.length) {
+    return {
+      ...output,
+      model: { ...output.model, configVersion: output.model.configVersion || DIAGNOSIS_CONFIG_VERSION },
+      actions: normalizedActions,
+      decision: requiresConfiguredReview ? 'expert_review' : output.decision,
+      needExpertReview: output.needExpertReview || requiresConfiguredReview,
+      expertReviewReasons: requiresConfiguredReview
+        ? [...new Set([...(output.expertReviewReasons || []), 'OPS_CONFIG_REVIEW_THRESHOLD'])]
+        : output.expertReviewReasons,
+      safety: { passed: true, violationCodes: [] },
+    };
+  }
   return {
     ...output,
+    model: { ...output.model, configVersion: output.model.configVersion || DIAGNOSIS_CONFIG_VERSION },
     decision: 'expert_review',
-    actions: [{ title: '请农技人员复核后再处理', description: '模型原建议未通过农业安全检查，已隐藏具体内容。', priority: 'now' }],
+    actions: [{ type: 'EXPERT_REVIEW', title: '请农技人员复核后再处理', description: '模型原建议未通过农业安全检查，已隐藏具体内容。', priority: 'now', safetyLevel: 'BIOSECURITY' }],
     avoidActions: ['不要根据本次模型原文自行购药、混配、加量或缩短采收间隔'],
     needExpertReview: true,
     expertReviewReasons: [...new Set([...(output.expertReviewReasons || []), 'SAFETY_FILTER_FAILED'])],
@@ -194,7 +226,7 @@ export class MockAiProvider implements DiagnosisAiProvider {
   }
 
   private moreImages(input: DiagnosisAiInput, disclaimer: string): DiagnosisAiOutput {
-    return {
+    return enforceDiagnosisSafety({
       decision: 'ask_more',
       model: this.model(),
       crop: input.cropName || '待确认作物',
@@ -208,13 +240,13 @@ export class MockAiProvider implements DiagnosisAiProvider {
       needMoreImages: true,
       disclaimer,
       safety: { passed: true, violationCodes: [] },
-    };
+    });
   }
 
   private model() {
     return {
       name: 'mock-crop-disease', version: '1.2.0', traceId: `ai_${randomUUID()}`,
-      knowledgeVersion: '1.0.0-mvp', promptVersion: 'diagnosis-prompt-1.0.0', policyVersion: '1.0.0-mvp',
+      knowledgeVersion: '1.0.0-mvp', promptVersion: 'diagnosis-prompt-1.0.0', policyVersion: '1.0.0-mvp', configVersion: DIAGNOSIS_CONFIG_VERSION,
     };
   }
 }

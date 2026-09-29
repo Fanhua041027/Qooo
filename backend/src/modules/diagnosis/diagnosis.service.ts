@@ -10,6 +10,7 @@ import { DIAGNOSIS_AI_PROVIDER, DiagnosisAiProvider } from './ai-provider';
 import { CreateDiagnosisDto } from './dto/create-diagnosis.dto';
 import { ListDiagnosisDto } from './dto/list-diagnosis.dto';
 import { VerifyDiagnosisDto } from './dto/verify-diagnosis.dto';
+import { canTransitionJev, type JevStage } from './jev-policy';
 
 const DIAGNOSIS_QUEUE = 'diagnosis.analyze';
 
@@ -180,6 +181,18 @@ export class DiagnosisService implements OnModuleInit {
       ? currentResult.loop as Record<string, unknown>
       : {};
     const stage = input.outcome === 'IMPROVED' ? 'CLOSED' : input.outcome === 'UNKNOWN' ? 'VERIFICATION' : 'REASSESSMENT';
+    const currentStage = typeof currentLoop.stage === 'string' && ['JUDGMENT', 'EXECUTION', 'VERIFICATION', 'REASSESSMENT', 'CLOSED'].includes(currentLoop.stage)
+      ? currentLoop.stage as JevStage
+      : 'JUDGMENT';
+    const transition = canTransitionJev({
+      from: currentStage,
+      to: stage,
+      hasTask: typeof currentLoop.taskId === 'string' && currentLoop.taskId.length > 0,
+      hasNewEvidence: false,
+    });
+    if (!transition.allowed) {
+      throw new ApiError(ErrorCode.DIAGNOSIS_INVALID_STATE, `JEV 状态转换被拒绝: ${transition.reasonCode}`, HttpStatus.CONFLICT);
+    }
     const loop = { ...currentLoop, stage, outcome: input.outcome, note: input.note, verifiedAt: now, updatedAt: now };
     const updated = await this.prisma.diagnosis.update({
       where: { id },
@@ -217,26 +230,24 @@ export class DiagnosisService implements OnModuleInit {
         : result.needExpertReview
           ? DiagnosisStatus.NEED_EXPERT_REVIEW
           : DiagnosisStatus.COMPLETED;
-      await this.prisma.$transaction([
-        this.prisma.diagnosis.update({
-          where: { id },
-          data: {
-            status,
-            result: result as unknown as Prisma.InputJsonValue,
-            expertReviewNeeded: result.needExpertReview,
-            modelName: result.model.name,
-            modelVersion: result.model.version,
-            modelTraceId: result.model.traceId,
-            completedAt: new Date(),
-          },
-        }),
-        this.prisma.notification.create({
+      const notificationType = status === DiagnosisStatus.NEED_MORE_IMAGES || status === DiagnosisStatus.NEED_EXPERT_REVIEW ? 'SYSTEM' : 'DIAGNOSIS_COMPLETED';
+      const operations: Prisma.PrismaPromise<unknown>[] = [this.prisma.diagnosis.update({
+        where: { id },
+        data: {
+          status,
+          result: result as unknown as Prisma.InputJsonValue,
+          expertReviewNeeded: result.needExpertReview,
+          modelName: result.model.name,
+          modelVersion: result.model.version,
+          modelTraceId: result.model.traceId,
+          completedAt: new Date(),
+        },
+      })];
+      if (await this.shouldNotify(diagnosis.userId, notificationType)) {
+        operations.push(this.prisma.notification.create({
           data: {
             userId: diagnosis.userId,
-            type:
-              status === DiagnosisStatus.NEED_MORE_IMAGES || status === DiagnosisStatus.NEED_EXPERT_REVIEW
-                ? 'SYSTEM'
-                : 'DIAGNOSIS_COMPLETED',
+            type: notificationType,
             title:
               status === DiagnosisStatus.NEED_MORE_IMAGES
                 ? '需要补充图片'
@@ -252,15 +263,16 @@ export class DiagnosisService implements OnModuleInit {
             targetType: 'diagnosis',
             targetId: id,
           },
-        }),
-      ]);
+        }));
+      }
+      await this.prisma.$transaction(operations);
     } catch (error) {
-      await this.prisma.$transaction([
-        this.prisma.diagnosis.update({
+      const failureOperations: Prisma.PrismaPromise<unknown>[] = [this.prisma.diagnosis.update({
           where: { id },
           data: { status: DiagnosisStatus.FAILED, failureCode: 'AI_PROVIDER_ERROR', failureMessage: '诊断服务暂时不可用' },
-        }),
-        this.prisma.notification.create({
+        })];
+      if (await this.shouldNotify(diagnosis.userId, 'DIAGNOSIS_FAILED')) {
+        failureOperations.push(this.prisma.notification.create({
           data: {
             userId: diagnosis.userId,
             type: 'DIAGNOSIS_FAILED',
@@ -269,14 +281,28 @@ export class DiagnosisService implements OnModuleInit {
             targetType: 'diagnosis',
             targetId: id,
           },
-        }),
-      ]);
+        }));
+      }
+      await this.prisma.$transaction(failureOperations);
       console.error(`诊断 ${id} 处理失败`, error);
     }
   }
 
   private async publishDiagnosisJob(diagnosisId: string, requestId: string, traceId: string) {
     await this.queue.publish<DiagnosisJob>(DIAGNOSIS_QUEUE, { diagnosisId, requestId, traceId });
+  }
+
+  private async shouldNotify(userId: string, type: 'DIAGNOSIS_COMPLETED' | 'DIAGNOSIS_FAILED' | 'SYSTEM') {
+    try {
+      const preferences = await this.prisma.notificationPreference.findUnique({ where: { userId } });
+      if (!preferences) return true;
+      if (type === 'DIAGNOSIS_COMPLETED') return preferences.diagnosisCompleted;
+      if (type === 'DIAGNOSIS_FAILED') return preferences.diagnosisFailed;
+      return preferences.system;
+    } catch {
+      // 偏好服务不可用时继续发送核心提醒，避免用户错过诊断结果。
+      return true;
+    }
   }
 
   private async requireDiagnosis(userId: string, id: string) {

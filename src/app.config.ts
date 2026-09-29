@@ -8,7 +8,13 @@ export default defineAppConfig({
     'pages/diagnosis-result/index',
     'pages/diagnosis-history/index',
     'pages/messages/index',
-    'pages/farm-detail/index'
+    'pages/farm-detail/index',
+    'pages/weather/index',
+    'pages/shop/index',
+    'pages/community/index',
+    'pages/expert-chat/index',
+    'pages/ops-config/index',
+    'pages/ops-config-edit/index'
   ],
   window: {
     backgroundTextStyle: 'light',
@@ -18,6 +24,7 @@ export default defineAppConfig({
     backgroundColor: '#F6F8F8'
   },
   tabBar: {
+    custom: true,
     color: '#465F62',
     selectedColor: '#25666D',
     backgroundColor: '#FFFFFF',

@@ -1,0 +1,14 @@
+.ops-config-status { display: flex; align-items: center; gap: 16rpx; margin-top: 20rpx; padding: 18rpx 20rpx; border-radius: 16rpx; line-height: 1.5; }
+.ops-config-status__icon { display: inline-flex; flex: none; align-items: center; justify-content: center; width: 38rpx; height: 38rpx; border-radius: 50%; color: #fff; font-size: 24rpx; font-weight: 700; }
+.ops-config-status__body { min-width: 0; flex: 1; }
+.ops-config-status__title, .ops-config-status__message { display: block; }
+.ops-config-status__title { font-size: 27rpx; font-weight: 700; }
+.ops-config-status__message { margin-top: 4rpx; font-size: 24rpx; }
+.ops-config-status--loading { background: var(--qd-primary-soft); color: var(--qd-primary-strong); }
+.ops-config-status--loading .ops-config-status__icon { background: var(--qd-primary); }
+.ops-config-status--success { background: #e8f6ed; color: #166534; }
+.ops-config-status--success .ops-config-status__icon { background: #21864b; }
+.ops-config-status--error { background: #fff0f0; color: #9b1c24; }
+.ops-config-status--error .ops-config-status__icon { background: #bd343d; }
+.ops-config-status--unauthorized { background: #fff7e8; color: #815212; }
+.ops-config-status--unauthorized .ops-config-status__icon { background: #c17a16; }

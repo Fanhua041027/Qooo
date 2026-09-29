@@ -9,7 +9,7 @@
   font-size: 30rpx;
   font-weight: 650;
   line-height: 1;
-  transition: background-color 180ms ease-out, color 180ms ease-out, opacity 180ms ease-out;
+  transition: background-color 180ms ease-out, color 180ms ease-out, opacity 180ms ease-out, transform 120ms ease-out;
 }
 
 .qd-button--lg {
@@ -30,6 +30,8 @@
 .qd-button--primary:active {
   background: var(--qd-primary-strong);
 }
+
+.qd-button:active:not([disabled]) { transform: translateY(1rpx); opacity: .92; }
 
 .qd-button--secondary {
   background: var(--qd-primary-soft);
@@ -52,6 +54,8 @@
   opacity: 1;
 }
 
+.qd-button[aria-busy='true'] { opacity: .78; }
+
 .qd-button-group {
   display: flex;
   gap: 16rpx;
@@ -59,4 +63,8 @@
 
 .qd-button-group .qd-button {
   flex: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qd-button { transition: none; }
 }

@@ -1,4 +1,5 @@
 import type { DiagnosisAction, DiagnosisDecision, DiagnosisExpertReview, DiagnosisFollowUpQuestion, DiagnosisModel, DiagnosisRisk, PossibleIssue, RiskLevel } from '@nongjianzhen/types'
+import { DEFAULT_DIAGNOSIS_CONFIG, applyDiagnosisOperationsConfig } from '../../packages/diagnosis-engine/src/decision-config'
 import knowledgeData from '../../data/agriculture/issues.v1.json'
 
 interface AgricultureIssue {
@@ -60,7 +61,8 @@ function createModel(): DiagnosisModel {
     provider: 'local-mock',
     promptVersion: 'diagnosis-prompt-1.0.0',
     policyVersion: '1.0.0-mvp',
-    knowledgeVersion: knowledge.version
+    knowledgeVersion: knowledge.version,
+    configVersion: 'ops-1.0.0'
   }
 }
 
@@ -96,6 +98,14 @@ export function buildMockKnowledgeResult(crop: string): MockKnowledgeResult {
   ]
 
   if (expertReviewRequired) actions.push({ type: 'EXPERT_REVIEW', title: issue.plainLanguage.nextStep })
+  actions.forEach((action) => { action.safetyLevel = action.type === 'EXPERT_REVIEW' || action.type === 'AVOID' ? 'BIOSECURITY' : 'OBSERVATION' })
+  const configured = applyDiagnosisOperationsConfig(DEFAULT_DIAGNOSIS_CONFIG, {
+    riskLevel,
+    confidence: Math.min(0.86, issue.aiReview.confidenceCap),
+    actions,
+    disclaimer: '当前内容为基于演示知识库的辅助判断，不代表确诊。涉及用药请核验登记信息和产品标签。',
+    safetyPassed: true,
+  })
 
   return {
     possibleIssues: [{
@@ -105,14 +115,14 @@ export function buildMockKnowledgeResult(crop: string): MockKnowledgeResult {
       riskLevel,
       lookalikes: issue.lookalikes || []
     }],
-    risk: { level: riskLevel, label: riskLabels[riskLevel], reason: issue.plainLanguage.summary },
-    actions,
+    risk: { level: riskLevel, label: configured.riskLabel || riskLabels[riskLevel], reason: `${issue.plainLanguage.summary} ${configured.riskHint}` },
+    actions: configured.actions,
     disclaimer: `以上为基于演示知识库的辅助判断，不代表确诊。${issue.safeInterval.displayText}`,
-    decision: expertReviewRequired ? 'EXPERT_REVIEW' : 'RESULT',
+    decision: configured.needExpertReview || expertReviewRequired ? 'EXPERT_REVIEW' : 'RESULT',
     followUpQuestions: [],
     expertReview: {
-      required: expertReviewRequired,
-      reasonCodes: expertReviewRequired ? ['KNOWLEDGE_POLICY_REVIEW'] : [],
+      required: configured.needExpertReview || expertReviewRequired,
+      reasonCodes: configured.needExpertReview || expertReviewRequired ? ['KNOWLEDGE_POLICY_REVIEW'] : [],
       message: expertReviewRequired ? '当前问题风险较高或容易混淆，建议让农技人员结合田间情况复核。' : undefined
     },
     model: createModel()
