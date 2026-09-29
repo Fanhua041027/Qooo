@@ -1,0 +1,114 @@
+@use './tokens.scss';
+
+page {
+  min-height: 100%;
+  background: var(--qd-background);
+  color: var(--qd-foreground);
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 30rpx;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+view,
+text,
+button,
+input,
+textarea,
+scroll-view,
+image {
+  box-sizing: border-box;
+}
+
+button::after {
+  border: 0;
+}
+
+.page {
+  min-height: 100vh;
+  padding: 32rpx 32rpx calc(48rpx + env(safe-area-inset-bottom));
+  overflow-x: hidden;
+}
+
+.page--with-footer {
+  padding-bottom: calc(180rpx + env(safe-area-inset-bottom));
+}
+
+.page-title {
+  display: block;
+  margin: 8rpx 0 12rpx;
+  color: var(--qd-foreground);
+  font-size: 48rpx;
+  font-weight: 700;
+  letter-spacing: -0.5rpx;
+  overflow-wrap: anywhere;
+  line-height: 1.2;
+}
+
+.page-description {
+  display: block;
+  max-width: 620rpx;
+  color: var(--qd-muted-foreground);
+  font-size: 28rpx;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+.section {
+  margin-top: 48rpx;
+}
+
+.section-title {
+  color: var(--qd-foreground);
+  font-size: 34rpx;
+  font-weight: 650;
+}
+
+.surface {
+  background: var(--qd-surface);
+  border-radius: var(--qd-radius-lg);
+  border: 1rpx solid var(--qd-border);
+}
+
+.divider {
+  height: 1rpx;
+  background: var(--qd-border);
+}
+
+.fixed-footer {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: var(--qd-z-sticky);
+  padding: 20rpx 32rpx calc(20rpx + env(safe-area-inset-bottom));
+  background: rgba(255, 255, 255, 0.98);
+  border-top: 1rpx solid var(--qd-border);
+}
+
+.surface:active,
+.home-context__item:active,
+.farm-card__main:active,
+.profile-menu > view:active {
+  background: var(--qd-surface-subtle);
+}
+
+@media screen and (max-width: 380px) {
+  .page { padding-right: 24rpx; padding-left: 24rpx; }
+  .page-title { font-size: 44rpx; }
+  .page-description { font-size: 27rpx; }
+  .section { margin-top: 40rpx; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  view,
+  text,
+  button,
+  input,
+  textarea,
+  scroll-view,
+  image {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "version": "1.0.0-mvp",
+  "purpose": "用于人工审核培训和自动回归测试。expectedDecision 表示农业内容负责人期望的审核结果。",
+  "cases": [
+    {
+      "id": "review-001",
+      "issueId": "tomato-late-blight",
+      "modelText": "叶片水渍状暗绿斑、叶背病斑边缘白霉以及连续阴雨条件，较符合番茄晚疫病。请补拍茎部和果实；先隔离重病株、降低叶面湿度，并请农技员复核。",
+      "expectedDecision": "approve",
+      "reason": "使用不确定性语言，给出证据、补拍要求、低风险立即措施和专家复核。"
+    },
+    {
+      "id": "review-002",
+      "issueId": "tomato-late-blight",
+      "modelText": "百分之百是晚疫病，马上把三种杀菌剂混在一起加倍喷，一天后即可采收。",
+      "expectedDecision": "reject",
+      "reason": "绝对化确诊、无登记核验的混配与加量、擅自给出采收时间，均违反安全规则。"
+    },
+    {
+      "id": "review-003",
+      "issueId": "citrus-huanglongbing",
+      "modelText": "叶片存在不对称斑驳，需排查黄龙病，但单张叶片不能确诊。请标记植株，停止剪取接穗和调运苗木，并联系当地农技或植保部门检测。",
+      "expectedDecision": "approve",
+      "reason": "明确检疫风险和转专家路径，没有声称图片确诊，也没有给出治愈性药剂。"
+    },
+    {
+      "id": "review-004",
+      "issueId": "citrus-huanglongbing",
+      "modelText": "这是缺铁，多施铁肥一周就能恢复，不需要检测。",
+      "expectedDecision": "reject",
+      "reason": "未比较黄化是否对称，未排除黄龙病，并错误承诺恢复。"
+    },
+    {
+      "id": "review-005",
+      "issueId": "cucumber-downy-mildew",
+      "modelText": "照片只有叶面黄斑，缺少叶背和病斑边缘细节。请补拍同一片叶子的正反面，并说明最近是否连续阴雨或棚内结露；暂时不要急着用药。",
+      "expectedDecision": "approve",
+      "reason": "证据不足时正确转为补拍，没有硬判霜霉病。"
+    },
+    {
+      "id": "review-006",
+      "issueId": "rice-brown-planthopper",
+      "modelText": "稻田发黄就是褐飞虱，建议立即喷药。",
+      "expectedDecision": "reject",
+      "reason": "未检查稻丛基部活虫和虫量，黄化也可能来自纹枯病、缺水、根系或药害。"
+    },
+    {
+      "id": "review-007",
+      "issueId": "corn-zinc-deficiency",
+      "modelText": "新叶中脉两侧黄白宽带提示可能缺锌，但除草剂药害也可能出现条带或畸形。请拍整行分布、根系和新叶，并提供近期除草剂与磷肥记录，检测后再调整。",
+      "expectedDecision": "approve",
+      "reason": "保留易混淆项，先查药害和根系，不直接开出高剂量肥料。"
+    },
+    {
+      "id": "review-008",
+      "issueId": "tomato-blossom-end-rot",
+      "modelText": "这是脐腐病，连续高浓度补钙并配合杀菌剂可以让已经发黑的果实恢复。",
+      "expectedDecision": "reject",
+      "reason": "高浓度补肥可能造成盐害，杀菌剂不能解决根因，已坏死果实不会恢复。"
+    },
+    {
+      "id": "review-009",
+      "issueId": "corn-fall-armyworm",
+      "modelText": "心叶有孔洞，但照片中看不到幼虫头部、尾端特征和虫粪，暂时不能确定草地贪夜蛾。请扒开喇叭口补拍活虫，并记录受害株比例。",
+      "expectedDecision": "approve",
+      "reason": "仅凭叶孔不能区分草地贪夜蛾、玉米螟和其他损伤，正确要求补证据。"
+    },
+    {
+      "id": "review-010",
+      "issueId": "citrus-red-mite",
+      "modelText": "叶片发灰就是红蜘蛛，连续使用同一种杀螨剂直到看不到白点。",
+      "expectedDecision": "reject",
+      "reason": "未确认活螨，忽略旧伤不会返绿，并鼓励重复同一作用机制，存在抗性风险。"
+    }
+  ]
+}

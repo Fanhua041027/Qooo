@@ -1,0 +1,36 @@
+<view class="page-shell">
+  <navigation-bar title="我的农场" back="{{false}}" color="#172b2e" background="#F6F8F8"></navigation-bar>
+  <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="page-content">
+      <view wx:if="{{state === 'empty'}}" class="surface farm-empty"><qd-empty-state title="还没有农场" description="添加农场和地块后，诊断可以自动带上作物和生长阶段。" action="添加第一个农场" bind:action="addFarm" /></view>
+      <block wx:else>
+        <view class="farm-overview">
+          <view class="farm-overview__top"><view><view class="farm-overview__name">{{farm.name}}</view><view class="farm-overview__location">{{farm.location}} · {{plots.length ? '4.2 亩' : '还没有地块'}}</view></view><view class="farm-overview__edit" bindtap="openFarmEditor">管理</view></view>
+          <view class="health-summary"><view class="health-summary__score">82</view><view><view class="health-summary__title">农场健康度良好</view><view class="health-summary__desc">1 个地块需要复查，其他状态正常</view></view></view>
+          <view class="health-bar"><view></view></view>
+        </view>
+
+        <view class="section"><view class="section-head"><view class="section-title">地块</view><view class="section-link" bindtap="addPlot">＋ 添加地块</view></view>
+          <view class="plot-list">
+            <view wx:for="{{plots}}" wx:key="id" class="plot-card surface">
+              <view class="plot-card__head"><view><view class="plot-card__name">{{item.name}}</view><view class="caption">{{item.cropLabel}} · {{item.area}}</view></view><qd-status label="{{item.health}}" type="{{item.healthType}}" size="small" /></view>
+              <view class="plot-card__field"><view class="plot-card__rows"></view><view class="plot-card__crop"></view></view>
+              <view class="plot-card__footer"><view>{{item.note}}</view><view bindtap="startDiagnosis">为这块地诊断 ›</view></view>
+            </view>
+          </view>
+        </view>
+
+        <view class="section"><view class="section-title">最近农事记录</view><view class="farm-timeline"><view><text>今天 08:20</text><view><view>完成东棚通风</view><text>陈师傅 · 记录正常</text></view></view><view><text>昨天 16:40</text><view><view>发现番茄叶片异常</view><text>已创建诊断记录</text></view></view><view><text>9 月 26 日</text><view><view>完成西棚灌溉</view><text>用时 45 分钟</text></view></view></view></view>
+      </block>
+    </view>
+  </scroll-view>
+  <view wx:if="{{editor}}" class="farm-editor-mask" bindtap="closeEditor"></view>
+  <view wx:if="{{editor}}" class="farm-editor" aria-role="dialog" aria-label="{{editor.type === 'plot' ? '添加地块' : '编辑农场'}}">
+    <view class="farm-editor__head"><view class="farm-editor__title">{{editor.type === 'plot' ? '添加地块' : (farm ? '编辑农场' : '添加农场')}}</view><view class="farm-editor__close" bindtap="closeEditor">×</view></view>
+    <view class="farm-editor__field"><text>{{editor.type === 'plot' ? '地块名称' : '农场名称'}}</text><input value="{{editor.name}}" data-field="name" bindinput="updateEditor" maxlength="30" /></view>
+    <view wx:if="{{editor.type === 'farm'}}" class="farm-editor__field"><text>所在地区</text><input value="{{editor.location}}" data-field="location" bindinput="updateEditor" maxlength="40" /></view>
+    <block wx:if="{{editor.type === 'plot'}}"><view class="farm-editor__field"><text>作物</text><input value="{{editor.crop}}" data-field="crop" bindinput="updateEditor" maxlength="20" /></view><view class="farm-editor__field"><text>生长阶段</text><input value="{{editor.growthStage}}" data-field="growthStage" bindinput="updateEditor" maxlength="20" /></view><view class="farm-editor__field"><text>面积</text><input value="{{editor.area}}" data-field="area" bindinput="updateEditor" placeholder="例如：2.4 亩" maxlength="20" /></view></block>
+    <view class="farm-editor__actions"><qd-button label="取消" type="ghost" size="medium" bind:tap="closeEditor" /><qd-button label="保存" size="medium" bind:tap="saveEditor" /></view>
+  </view>
+  <bottom-nav current="farm" />
+</view>

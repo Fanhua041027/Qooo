@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nongjianzhen.local/schemas/model-diagnosis-output-v1.json",
+  "title": "农间诊模型原始输出",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "decision",
+    "cropConfirmed",
+    "crop",
+    "growthStage",
+    "candidates",
+    "followUpQuestions",
+    "generalActions",
+    "warnings"
+  ],
+  "properties": {
+    "decision": { "enum": ["RESULT", "ASK_MORE", "EXPERT_REVIEW", "REJECTED"] },
+    "cropConfirmed": { "type": "boolean" },
+    "crop": { "type": ["string", "null"] },
+    "growthStage": { "type": ["string", "null"] },
+    "candidates": {
+      "type": "array",
+      "maxItems": 3,
+      "items": { "$ref": "#/$defs/candidate" }
+    },
+    "followUpQuestions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/followUpQuestion" }
+    },
+    "generalActions": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "warnings": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "cropConfirmed": { "const": true } }, "required": ["cropConfirmed"] },
+      "then": { "properties": { "crop": { "type": "string", "minLength": 1 } } }
+    },
+    {
+      "if": { "properties": { "decision": { "enum": ["RESULT", "EXPERT_REVIEW"] } }, "required": ["decision"] },
+      "then": { "properties": { "candidates": { "minItems": 1 } } }
+    },
+    {
+      "if": { "properties": { "decision": { "const": "RESULT" } }, "required": ["decision"] },
+      "then": { "properties": { "generalActions": { "minItems": 1 } } }
+    },
+    {
+      "if": { "properties": { "decision": { "const": "ASK_MORE" } }, "required": ["decision"] },
+      "then": {
+        "properties": {
+          "candidates": { "maxItems": 0 },
+          "followUpQuestions": { "minItems": 1 }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "decision": { "const": "REJECTED" } }, "required": ["decision"] },
+      "then": { "properties": { "candidates": { "maxItems": 0 } } }
+    }
+  ],
+  "$defs": {
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "modelScore", "riskLevel", "evidence", "lookalikes"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "modelScore": { "type": "number", "minimum": 0, "maximum": 1 },
+        "riskLevel": { "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"] },
+        "evidence": { "type": "array", "minItems": 2, "items": { "type": "string", "minLength": 1 } },
+        "lookalikes": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+      }
+    },
+    "followUpQuestion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "prompt"],
+      "properties": {
+        "code": { "type": "string", "minLength": 1 },
+        "prompt": { "type": "string", "minLength": 1 },
+        "captureHint": { "type": ["string", "null"] }
+      }
+    }
+  }
+}

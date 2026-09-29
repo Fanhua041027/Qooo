@@ -1,0 +1,1 @@
+<button class="qd-button qd-button--{{type}} qd-button--{{size}} {{block ? 'qd-button--block' : ''}}" hover-class="qd-button--pressed" hover-stay-time="120" disabled="{{disabled || loading}}" loading="{{loading}}" aria-label="{{loading ? '正在处理，请稍候' : label}}" bindtap="handleTap">{{loading ? '正在处理' : label}}<slot></slot></button>

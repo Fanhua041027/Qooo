@@ -1,0 +1,397 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  FARMER
+  EXPERT
+  OPERATOR
+  ADMIN
+}
+
+enum DiagnosisStatus {
+  CREATED
+  UPLOADING
+  ANALYZING
+  COMPLETED
+  NEED_MORE_IMAGES
+  NEED_EXPERT_REVIEW
+  FAILED
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum TaskStatus {
+  PENDING
+  COMPLETED
+  OVERDUE
+  CANCELLED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum OpsConfigCategory {
+  RISK
+  ACTION
+  IMAGE_QUALITY
+  SAFETY
+  EXPERT_REVIEW
+  HOME
+}
+
+enum OpsConfigStatus {
+  PUBLISHED
+  DRAFT
+}
+
+enum OpsConfigVersionAction {
+  UPDATE
+  ROLLBACK
+}
+
+enum NotificationType {
+  DIAGNOSIS_COMPLETED
+  DIAGNOSIS_FAILED
+  TASK_DUE
+  TASK_OVERDUE
+  SYSTEM
+}
+
+model User {
+  id                     String                  @id @default(cuid())
+  phone                  String?                 @unique
+  wechatOpenId           String?                 @unique
+  nickname               String
+  avatarUrl              String?
+  role                   UserRole                @default(FARMER)
+  mockAccount            Boolean                 @default(false)
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  farms                  Farm[]
+  diagnoses              Diagnosis[]
+  tasks                  Task[]
+  notifications          Notification[]
+  notificationPreference NotificationPreference?
+  files                  FileObject[]
+  auditLogs              AuditLog[]
+  opsConfigs             OpsConfig[]
+  opsVersions            OpsConfigVersion[]
+  shopOrders             ShopOrder[]
+  communityPosts         CommunityPost[]
+  communityLikes         CommunityPostLike[]
+  expertChatSessions     ExpertChatSession[]
+}
+
+model Farm {
+  id        String      @id @default(cuid())
+  ownerId   String
+  name      String
+  region    String
+  address   String?
+  areaMu    Decimal?    @db.Decimal(10, 2)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  deletedAt DateTime?
+  owner     User        @relation(fields: [ownerId], references: [id])
+  plots     Plot[]
+  diagnoses Diagnosis[]
+  tasks     Task[]
+
+  @@index([ownerId, deletedAt])
+}
+
+model Plot {
+  id          String      @id @default(cuid())
+  farmId      String
+  name        String
+  areaMu      Decimal?    @db.Decimal(10, 2)
+  cropName    String
+  cropVariety String?
+  plantedAt   DateTime
+  growthStage String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  deletedAt   DateTime?
+  farm        Farm        @relation(fields: [farmId], references: [id])
+  diagnoses   Diagnosis[]
+  tasks       Task[]
+
+  @@index([farmId, deletedAt])
+}
+
+model Diagnosis {
+  id                 String           @id @default(cuid())
+  userId             String
+  farmId             String?
+  plotId             String?
+  clientRequestId    String
+  status             DiagnosisStatus  @default(CREATED)
+  cropName           String?
+  growthStage        String?
+  description        String?
+  result             Json?
+  failureCode        String?
+  failureMessage     String?
+  modelName          String?
+  modelVersion       String?
+  modelTraceId       String?
+  requestId          String
+  traceId            String
+  expertReviewNeeded Boolean          @default(false)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  completedAt        DateTime?
+  deletedAt          DateTime?
+  user               User             @relation(fields: [userId], references: [id])
+  farm               Farm?            @relation(fields: [farmId], references: [id])
+  plot               Plot?            @relation(fields: [plotId], references: [id])
+  images             DiagnosisImage[]
+  tasks              Task[]
+
+  @@unique([userId, clientRequestId])
+  @@index([userId, status, createdAt])
+  @@index([plotId, createdAt])
+}
+
+model DiagnosisImage {
+  id          String    @id @default(cuid())
+  diagnosisId String
+  objectKey   String
+  width       Int?
+  height      Int?
+  quality     Json?
+  createdAt   DateTime  @default(now())
+  diagnosis   Diagnosis @relation(fields: [diagnosisId], references: [id], onDelete: Cascade)
+
+  @@index([diagnosisId])
+}
+
+model Task {
+  id              String       @id @default(cuid())
+  userId          String
+  clientRequestId String?
+  farmId          String?
+  plotId          String?
+  diagnosisId     String?
+  title           String
+  description     String?
+  assignee        String?
+  priority        TaskPriority @default(MEDIUM)
+  status          TaskStatus   @default(PENDING)
+  dueAt           DateTime?
+  completedAt     DateTime?
+  completedNote   String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  user            User         @relation(fields: [userId], references: [id])
+  farm            Farm?        @relation(fields: [farmId], references: [id])
+  plot            Plot?        @relation(fields: [plotId], references: [id])
+  diagnosis       Diagnosis?   @relation(fields: [diagnosisId], references: [id])
+
+  @@unique([userId, clientRequestId])
+  @@index([userId, status, dueAt])
+}
+
+model Notification {
+  id         String           @id @default(cuid())
+  userId     String
+  type       NotificationType
+  title      String
+  content    String
+  targetType String?
+  targetId   String?
+  readAt     DateTime?
+  createdAt  DateTime         @default(now())
+  user       User             @relation(fields: [userId], references: [id])
+
+  @@index([userId, readAt, createdAt])
+}
+
+model NotificationPreference {
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  diagnosisCompleted Boolean  @default(true)
+  diagnosisFailed    Boolean  @default(true)
+  taskDue            Boolean  @default(true)
+  taskOverdue        Boolean  @default(true)
+  system             Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model FileObject {
+  id          String   @id @default(cuid())
+  userId      String
+  objectKey   String   @unique
+  bucket      String
+  contentType String
+  size        Int?
+  status      String   @default("pending")
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, createdAt])
+}
+
+model KnowledgeArticle {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  title     String
+  summary   String
+  content   String
+  cropName  String?
+  tags      String[]
+  published Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  action     String
+  resource   String
+  resourceId String?
+  requestId  String
+  traceId    String
+  metadata   Json?
+  createdAt  DateTime @default(now())
+  user       User?    @relation(fields: [userId], references: [id])
+
+  @@index([resource, resourceId, createdAt])
+}
+
+model OpsConfig {
+  id          String             @id @default(cuid())
+  key         String             @unique
+  name        String
+  description String
+  category    OpsConfigCategory
+  status      OpsConfigStatus    @default(PUBLISHED)
+  content     String             @db.Text
+  version     Int                @default(1)
+  updatedById String
+  updatedBy   String
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  versions    OpsConfigVersion[]
+  updater     User               @relation(fields: [updatedById], references: [id])
+
+  @@index([category, status])
+}
+
+model OpsConfigVersion {
+  id          String                 @id @default(cuid())
+  configId    String
+  version     Int
+  content     String                 @db.Text
+  action      OpsConfigVersionAction
+  changedById String
+  changedBy   String
+  requestId   String
+  traceId     String
+  createdAt   DateTime               @default(now())
+  config      OpsConfig              @relation(fields: [configId], references: [id], onDelete: Cascade)
+  operator    User                   @relation(fields: [changedById], references: [id])
+
+  @@unique([configId, version])
+  @@index([configId, createdAt])
+}
+
+model ShopOrder {
+  id        String          @id @default(cuid())
+  userId    String
+  address   String
+  note      String?
+  total     Float
+  status    String          @default("PENDING_PAYMENT")
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  user      User            @relation(fields: [userId], references: [id])
+  items     ShopOrderItem[]
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+}
+
+model ShopOrderItem {
+  id          String    @id @default(cuid())
+  orderId     String
+  productId   String
+  productName String
+  unit        String
+  price       Float
+  quantity    Int
+  order       ShopOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+}
+
+model CommunityPost {
+  id        String              @id @default(cuid())
+  authorId  String
+  crop      String?
+  title     String
+  content   String              @db.Text
+  tags      String[]
+  likes     Int                 @default(0)
+  comments  Int                 @default(0)
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+  author    User                @relation(fields: [authorId], references: [id])
+  reactions CommunityPostLike[]
+
+  @@index([createdAt])
+  @@index([crop, createdAt])
+}
+
+model CommunityPostLike {
+  id        String        @id @default(cuid())
+  postId    String
+  userId    String
+  createdAt DateTime      @default(now())
+  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([userId, createdAt])
+}
+
+model ExpertChatSession {
+  id        String              @id @default(cuid())
+  userId    String
+  expertId  String
+  status    String              @default("WAITING")
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+  user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages  ExpertChatMessage[]
+
+  @@unique([userId, expertId])
+  @@index([userId, updatedAt])
+}
+
+model ExpertChatMessage {
+  id        String            @id @default(cuid())
+  sessionId String
+  sender    String
+  text      String            @db.Text
+  createdAt DateTime          @default(now())
+  session   ExpertChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+}

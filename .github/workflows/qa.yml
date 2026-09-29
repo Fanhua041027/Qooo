@@ -1,0 +1,45 @@
+name: QA gate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  code-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+      - name: 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - name: 安装前端依赖
+        run: npm install --ignore-scripts
+      - name: 安装后端依赖
+        working-directory: backend
+        run: npm ci --ignore-scripts
+      - name: 执行发布代码门禁
+        run: node scripts/release/check-release.mjs --code-only
+
+  api-smoke:
+    if: ${{ github.event_name == 'workflow_dispatch' && vars.REAL_API_BASE_URL != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+      - name: 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: 执行真实 API smoke
+        env:
+          BASE_URL: ${{ vars.REAL_API_BASE_URL }}
+          QA_ACCOUNT_ID: ${{ vars.QA_ACCOUNT_ID || 'ops_p0_001' }}
+          QA_SMOKE_CONFIG_KEY: qa.p0-11.ci
+        run: node scripts/qa/smoke-p0-11.mjs

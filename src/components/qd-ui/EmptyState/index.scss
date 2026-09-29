@@ -1,0 +1,26 @@
+.qd-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 40rpx 0;
+}
+
+.qd-empty__mark {
+  width: 48rpx;
+  height: 8rpx;
+  margin-bottom: 24rpx;
+  border-radius: 999rpx;
+  background: var(--qd-accent);
+}
+
+.qd-empty__title {
+  color: var(--qd-foreground);
+  font-size: 32rpx;
+  font-weight: 650;
+}
+
+.qd-empty__description {
+  margin: 8rpx 0 28rpx;
+  color: var(--qd-muted-foreground);
+  font-size: 28rpx;
+}

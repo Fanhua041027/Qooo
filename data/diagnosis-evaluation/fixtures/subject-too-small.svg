@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1600" viewBox="0 0 1200 1600">
+  <rect width="1200" height="1600" fill="#dce7dd"/>
+  <ellipse cx="600" cy="790" rx="70" ry="110" fill="#4f8f58"/>
+  <circle cx="585" cy="760" r="12" fill="#55452f"/>
+  <text x="48" y="1540" font-size="38" fill="#173a24">合成质量测试图：主体过小</text>
+</svg>

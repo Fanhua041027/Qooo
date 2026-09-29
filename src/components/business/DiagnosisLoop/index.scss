@@ -1,0 +1,23 @@
+.diagnosis-loop { margin-top: 32rpx; padding: 28rpx; border-radius: 20rpx; background: var(--qd-primary-soft); }
+.diagnosis-loop--closed { background: #e8f4ed; }
+.diagnosis-loop--reassessment { background: var(--qd-accent-soft); }
+.diagnosis-loop__heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16rpx; }
+.diagnosis-loop__title { display: block; color: var(--qd-primary-strong); font-size: 31rpx; font-weight: 700; }
+.diagnosis-loop__subtitle { display: block; margin-top: 6rpx; color: var(--qd-muted-foreground); font-size: 24rpx; }
+.diagnosis-loop__code { color: var(--qd-primary); font-size: 24rpx; font-weight: 700; }
+.diagnosis-loop__review { display: block; margin-top: 16rpx; color: var(--qd-accent); font-size: 25rpx; font-weight: 650; }
+.diagnosis-loop__steps { display: flex; gap: 12rpx; margin-top: 26rpx; }
+.diagnosis-loop__step { display: flex; min-width: 0; flex: 1; align-items: flex-start; gap: 10rpx; opacity: .52; }
+.diagnosis-loop__step--current, .diagnosis-loop__step--complete { opacity: 1; }
+.diagnosis-loop__dot { display: flex; width: 42rpx; height: 42rpx; flex: 0 0 auto; align-items: center; justify-content: center; border-radius: 50%; background: rgba(37, 102, 109, .16); color: var(--qd-primary-strong); font-size: 22rpx; font-weight: 700; }
+.diagnosis-loop__step--current .diagnosis-loop__dot { background: var(--qd-primary); color: #fff; }
+.diagnosis-loop__step--complete .diagnosis-loop__dot { background: var(--qd-success); color: #fff; }
+.diagnosis-loop__label, .diagnosis-loop__copy { display: block; }
+.diagnosis-loop__label { color: var(--qd-foreground); font-size: 25rpx; font-weight: 700; }
+.diagnosis-loop__copy { margin-top: 4rpx; color: var(--qd-muted-foreground); font-size: 21rpx; line-height: 1.4; }
+.diagnosis-loop__verify { margin-top: 24rpx; padding-top: 22rpx; border-top: 1rpx solid rgba(37, 102, 109, .18); }
+.diagnosis-loop__verify-title { display: block; color: var(--qd-foreground); font-size: 28rpx; font-weight: 700; }
+.diagnosis-loop__verify-copy { display: block; margin-top: 6rpx; color: var(--qd-muted-foreground); font-size: 24rpx; line-height: 1.5; }
+.diagnosis-loop__actions { display: flex; gap: 12rpx; margin-top: 18rpx; }
+.diagnosis-loop__actions .qd-button { min-width: 0; flex: 1; padding: 0 10rpx; font-size: 24rpx; }
+.diagnosis-loop__verify > .qd-button { margin-top: 8rpx; }

@@ -1,0 +1,8 @@
+.empty-state { padding: 64rpx 36rpx; text-align: center; }
+.empty-state__visual { position: relative; width: 104rpx; height: 104rpx; margin: 0 auto 28rpx; border: 2rpx solid #a9bec0; border-radius: 28rpx; background: #eef3f3; }
+.empty-state__visual--offline, .empty-state__visual--error { background: #fde9e7; border-color: #e1aaa6; }
+.empty-state__line { position: absolute; left: 24rpx; right: 24rpx; bottom: 28rpx; height: 4rpx; border-radius: 4rpx; background: #25666d; transform: rotate(-28deg); }
+.empty-state__dot { position: absolute; top: 24rpx; right: 24rpx; width: 18rpx; height: 18rpx; border-radius: 50%; background: #b65e18; }
+.empty-state__title { color: #172b2e; font-size: 32rpx; font-weight: 650; }
+.empty-state__description { max-width: 520rpx; margin: 14rpx auto 0; color: #465f62; font-size: 27rpx; line-height: 1.65; }
+.empty-state__action { display: flex; justify-content: center; margin-top: 28rpx; }

@@ -1,0 +1,43 @@
+{
+  "version": "quality-fixtures-1.0.0",
+  "purpose": "图片质量门禁与前端状态回归，不用于评估真实病害识别准确率",
+  "cases": [
+    {
+      "id": "quality-pass-001",
+      "asset": "fixtures/clear-lesion.svg",
+      "signals": { "width": 1200, "height": 1600, "sharpness": 0.8, "brightness": 0.55, "subjectCoverage": 0.42, "occlusion": 0.05 },
+      "expectedDecision": "PASS"
+    },
+    {
+      "id": "quality-dark-001",
+      "asset": "fixtures/too-dark.svg",
+      "signals": { "width": 1200, "height": 1600, "sharpness": 0.75, "brightness": 0.08, "subjectCoverage": 0.4, "occlusion": 0.05 },
+      "expectedDecision": "RETAKE",
+      "expectedIssues": ["IMAGE_TOO_DARK"]
+    },
+    {
+      "id": "quality-distant-001",
+      "asset": "fixtures/subject-too-small.svg",
+      "signals": { "width": 1200, "height": 1600, "sharpness": 0.8, "brightness": 0.55, "subjectCoverage": 0.05, "occlusion": 0.05 },
+      "expectedDecision": "RETAKE",
+      "expectedIssues": ["SUBJECT_TOO_SMALL"]
+    },
+    {
+      "id": "quality-occluded-001",
+      "asset": "fixtures/occluded.svg",
+      "signals": { "width": 1200, "height": 1600, "sharpness": 0.8, "brightness": 0.55, "subjectCoverage": 0.42, "occlusion": 0.8 },
+      "expectedDecision": "RETAKE",
+      "expectedIssues": ["SUBJECT_OCCLUDED"]
+    }
+  ],
+  "fieldImageGate": {
+    "owner": "农业专家与 AI 工程师共同维护",
+    "minimumBeforeRealModelRelease": 50,
+    "requirements": [
+      "首批五种作物每种至少十张",
+      "每张记录来源、许可、作物、部位、专家标签和易混淆标签",
+      "训练图片不得进入独立评测集",
+      "未经专家复核的图片不得作为准确率结论依据"
+    ]
+  }
+}

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1600" viewBox="0 0 1200 1600">
+  <rect width="1200" height="1600" fill="#050806"/>
+  <ellipse cx="600" cy="790" rx="390" ry="620" fill="#101a12"/>
+  <text x="48" y="1540" font-size="38" fill="#607065">合成质量测试图：画面过暗</text>
+</svg>

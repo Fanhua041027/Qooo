@@ -1,0 +1,1 @@
+<view class="qd-status qd-status--{{type}} qd-status--{{size}}" aria-role="text"><view class="qd-status__mark" aria-hidden="true"></view><text>{{label}}</text></view>

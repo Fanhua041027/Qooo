@@ -1,0 +1,31 @@
+<view class="knowledge-page {{fontLarge ? 'knowledge-page--large' : ''}}">
+  <navigation-bar title="农技知识" color="#172b2e" background="#FFFFFF"></navigation-bar>
+  <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="article">
+      <view class="article__meta"><qd-status label="番茄病害" type="info" size="small" /><text>更新于 2026-09-24</text></view>
+      <view class="article__title">连续阴雨后，怎样区分晚疫病与叶霉病？</view>
+      <view class="article__lead">两种病害都容易在高湿环境出现，但观察病斑形状、叶片背面和扩散速度，可以帮助你做出更可靠的初步判断。</view>
+      <view class="article-tools"><view bindtap="toggleFont">{{fontLarge ? '标准字号' : '大字阅读'}}</view><view bindtap="toggleSave">{{saved ? '已收藏' : '收藏文章'}}</view></view>
+
+      <view class="article-visual" aria-label="叶片病斑观察示意图"><view class="article-visual__leaf"></view><view class="article-visual__spot"></view><view class="article-visual__caption">观察时要同时查看叶片正面和背面</view></view>
+
+      <view class="article-section"><view class="article-section__title">先看病斑是什么样</view><view class="article__paragraph">晚疫病初期常出现暗绿色、水渍状的不规则斑块。湿度较高时，病斑扩展很快，严重时叶片可能在短时间内大面积枯萎。</view><view class="article__paragraph">叶霉病通常先在叶片正面出现边缘不太清晰的淡黄色斑，翻到背面后，往往能看到灰褐色或橄榄色的霉层。</view></view>
+
+      <view class="compare-table">
+        <view class="compare-table__row compare-table__head"><view>观察点</view><view>晚疫病</view><view>叶霉病</view></view>
+        <view class="compare-table__row"><view>正面</view><view>暗绿水渍状</view><view>淡黄色斑</view></view>
+        <view class="compare-table__row"><view>背面</view><view>湿时有白霉</view><view>灰褐色霉层</view></view>
+        <view class="compare-table__row"><view>扩散</view><view>常较快</view><view>相对较慢</view></view>
+      </view>
+
+      <view class="article-section"><view class="article-section__title">再看出现的位置</view><view class="article__paragraph">晚疫病不仅会影响叶片，也可能出现在茎和果实上。如果茎部出现暗褐色长条形病斑，或者青果上出现边缘不清晰的褐色斑，需要提高警惕。</view><view class="article__paragraph">叶霉病通常先从中下部叶片开始，尤其是在通风较差、叶片长期潮湿的棚室内更常见。</view></view>
+
+      <view class="article-callout"><view class="article-callout__title">现场观察顺序</view><view>1. 拍叶片正面</view><view>2. 翻到背面观察是否有霉层</view><view>3. 检查茎部和相邻植株</view><view>4. 记录 24 小时内病斑是否明显扩大</view></view>
+
+      <view class="article-section"><view class="article-section__title">什么时候应该请农技员确认</view><view class="article__paragraph">当病斑在一天内明显扩大、同一地块多株同时出现症状，或已经影响茎和果实时，建议尽快联系当地农技员。涉及药剂时，应以产品标签、登记作物和当地指导为准，不要仅凭图片自行混配。</view></view>
+
+      <view class="article-source"><view>内容审核</view><text>农间诊农业内容组</text><view>参考范围</view><text>设施番茄常见病害田间识别资料</text></view>
+      <view class="article-action"><qd-button label="拍照判断我的作物" bind:tap="startDiagnosis" /></view>
+    </view>
+  </scroll-view>
+</view>
